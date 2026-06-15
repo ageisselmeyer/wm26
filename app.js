@@ -629,12 +629,16 @@ const VIEWPORT_STABLE_MAX_MS = 600;
 const VIEWPORT_POST_STABLE_MS = 120;
 
 function readViewportHeight() {
-  return window.visualViewport?.height ?? window.innerHeight;
+  const vv = window.visualViewport;
+  if (!vv) return window.innerHeight;
+  // visualViewport.height alone leaves a gap above the home indicator on iOS.
+  return Math.round(vv.height + vv.offsetTop);
 }
 
 function applyLockedViewportHeight(px) {
+  document.documentElement.style.setProperty("--app-height", `${px}px`);
   document.documentElement.style.height = `${px}px`;
-  document.body.style.height = "";
+  document.body.style.height = `${px}px`;
 }
 
 function lockViewportHeight(px) {
@@ -682,11 +686,22 @@ async function stabilizeViewport() {
   viewportLocked = true;
 }
 
+function syncLockedViewportHeight() {
+  if (!viewportLocked || lockedViewportHeightPx === null) return;
+  const h = Math.round(readViewportHeight());
+  if (h !== lockedViewportHeightPx) lockViewportHeight(h);
+  else applyLockedViewportHeight(lockedViewportHeightPx);
+}
+
+window.visualViewport?.addEventListener("resize", syncLockedViewportHeight);
+window.addEventListener("resize", syncLockedViewportHeight);
+window.addEventListener("orientationchange", syncLockedViewportHeight);
+
 window.addEventListener("pageshow", () => {
   if (!viewportLocked) {
     void stabilizeViewport();
-  } else if (lockedViewportHeightPx !== null) {
-    applyLockedViewportHeight(lockedViewportHeightPx);
+  } else {
+    syncLockedViewportHeight();
   }
 });
 

@@ -55,12 +55,6 @@ body {
   padding: 0 env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px);
 }
 
-@media (display-mode: standalone), (display-mode: fullscreen) {
-  .day-nav {
-    padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
-  }
-}
-
 #app {
   visibility: hidden;
   opacity: 0;
@@ -345,7 +339,7 @@ h2 {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 12px 16px max(12px, env(safe-area-inset-bottom, 0px));
+  padding: 12px 16px;
   background: var(--blue);
   border-top: 1px solid var(--border-match);
 }
