@@ -187,7 +187,6 @@ const HOST_CITIES = {
 };
 
 const gamesEl = document.getElementById("games");
-const statusEl = document.getElementById("status");
 const headingEl = document.getElementById("heading");
 const appEl = document.getElementById("app");
 const scrollEl = document.querySelector(".app-scroll");
@@ -558,11 +557,6 @@ async function loadGames() {
   const { fixtures, scoreIndex } = await fetchGameData();
   const games = buildGamesList(fixtures, scoreIndex, meszSelected, now);
 
-  const liveCount = games.filter((game) => game.live).length;
-  statusEl.textContent = liveCount
-    ? `${games.length} Spiele · ${liveCount} live · MESZ`
-    : `${games.length} Spiele · MESZ`;
-
   renderGames(games, emptyDayMessage(dayOffset, now));
   updateDayNav();
 }
@@ -616,7 +610,6 @@ async function refresh() {
     dataCache = null;
     await loadGames();
   } catch (error) {
-    statusEl.textContent = "";
     gamesEl.innerHTML = `<p class="error">${error.message}</p>`;
   }
 }
