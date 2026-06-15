@@ -190,6 +190,7 @@ const gamesEl = document.getElementById("games");
 const statusEl = document.getElementById("status");
 const headingEl = document.getElementById("heading");
 const appEl = document.getElementById("app");
+const scrollEl = document.querySelector(".app-scroll");
 const dayPrevBtn = document.getElementById("day-prev");
 const dayNextBtn = document.getElementById("day-next");
 const dayTodayBtn = document.getElementById("day-today");
@@ -592,15 +593,15 @@ function setupDayNav() {
 }
 
 function setupDaySwipe() {
-  if (!appEl) return;
+  if (!scrollEl) return;
 
-  appEl.addEventListener("touchstart", (event) => {
+  scrollEl.addEventListener("touchstart", (event) => {
     if (event.touches.length !== 1) return;
     touchStartX = event.touches[0].clientX;
     touchStartY = event.touches[0].clientY;
   }, { passive: true });
 
-  appEl.addEventListener("touchend", (event) => {
+  scrollEl.addEventListener("touchend", (event) => {
     if (event.changedTouches.length !== 1) return;
     const dx = event.changedTouches[0].clientX - touchStartX;
     const dy = event.changedTouches[0].clientY - touchStartY;
