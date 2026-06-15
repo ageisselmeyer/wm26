@@ -621,88 +621,49 @@ async function refresh() {
   }
 }
 
-let viewportLocked = false;
-let lockedViewportHeightPx = null;
+let viewportReady = false;
 
 const VIEWPORT_STABLE_FRAMES = 4;
 const VIEWPORT_STABLE_MAX_MS = 600;
 const VIEWPORT_POST_STABLE_MS = 120;
 
-function readViewportHeight() {
-  const vv = window.visualViewport;
-  if (!vv) return window.innerHeight;
-  // visualViewport.height alone leaves a gap above the home indicator on iOS.
-  return Math.round(vv.height + vv.offsetTop);
-}
-
-function applyLockedViewportHeight(px) {
-  document.documentElement.style.setProperty("--app-height", `${px}px`);
-  document.documentElement.style.height = `${px}px`;
-  document.body.style.height = `${px}px`;
-}
-
-function lockViewportHeight(px) {
-  lockedViewportHeightPx = px;
-  applyLockedViewportHeight(px);
-}
-
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function waitForStableViewportHeight() {
+async function waitForStableViewport() {
   const start = performance.now();
   let last = -1;
   let stableFrames = 0;
 
   while (performance.now() - start < VIEWPORT_STABLE_MAX_MS) {
     await new Promise(requestAnimationFrame);
-    const h = Math.round(readViewportHeight());
+    const h = window.innerHeight;
     if (h === last) {
       stableFrames += 1;
       if (stableFrames >= VIEWPORT_STABLE_FRAMES) {
         await delay(VIEWPORT_POST_STABLE_MS);
-        return Math.round(readViewportHeight());
+        return;
       }
     } else {
       last = h;
       stableFrames = 1;
     }
   }
-
-  return Math.round(readViewportHeight());
 }
 
 async function stabilizeViewport() {
-  if (viewportLocked) {
-    if (lockedViewportHeightPx !== null) applyLockedViewportHeight(lockedViewportHeightPx);
-    return;
-  }
+  if (viewportReady) return;
 
   appEl?.classList.remove("ready");
-  lockViewportHeight(await waitForStableViewportHeight());
+  await waitForStableViewport();
   appEl?.offsetHeight;
   appEl?.classList.add("ready");
-  viewportLocked = true;
+  viewportReady = true;
 }
-
-function syncLockedViewportHeight() {
-  if (!viewportLocked || lockedViewportHeightPx === null) return;
-  const h = Math.round(readViewportHeight());
-  if (h !== lockedViewportHeightPx) lockViewportHeight(h);
-  else applyLockedViewportHeight(lockedViewportHeightPx);
-}
-
-window.visualViewport?.addEventListener("resize", syncLockedViewportHeight);
-window.addEventListener("resize", syncLockedViewportHeight);
-window.addEventListener("orientationchange", syncLockedViewportHeight);
 
 window.addEventListener("pageshow", () => {
-  if (!viewportLocked) {
-    void stabilizeViewport();
-  } else {
-    syncLockedViewportHeight();
-  }
+  if (!viewportReady) void stabilizeViewport();
 });
 
 void stabilizeViewport();
