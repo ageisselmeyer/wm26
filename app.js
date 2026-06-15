@@ -1,9 +1,12 @@
 const FIXTURES_URL = "https://www.thestatsapi.com/world-cup/data/fixtures.json";
 const RESULTS_URL = "https://cdn.jsdelivr.net/gh/openfootball/worldcup.json@master/2026/worldcup.json";
 const CUP_TXT_URL = "https://raw.githubusercontent.com/openfootball/worldcup/master/2026--usa/cup.txt";
+const ESPN_SCOREBOARD_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard";
+const ESPN_SUMMARY_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary";
 const MESZ_TZ = "Europe/Berlin";
 const MATCH_DURATION_MS = 105 * 60 * 1000;
 const REFRESH_MS = 60 * 1000;
+const ESPN_LIVE_REFRESH_MS = 30 * 1000;
 const TOURNAMENT_START = "2026-06-11";
 const TOURNAMENT_END = "2026-07-19";
 
@@ -55,7 +58,8 @@ const TEAM_ALIASES = {
   "cape verde": "cape verde",
   "ir iran": "iran",
   "usa": "united states",
-  "curacao": "curaçao"
+  "curacao": "curaçao",
+  "cote divoire": "ivory coast"
 };
 
 const TEAM_DE = {
@@ -196,6 +200,10 @@ const dayTodayBtn = document.getElementById("day-today");
 
 let dayOffset = 0;
 let dataCache = null;
+let currentGames = [];
+let livePollId = null;
+const expandedEventIds = new Set();
+const espnEventsCache = new Map();
 
 const SWIPE_MIN_PX = 50;
 const SWIPE_MAX_VERTICAL_PX = 60;
@@ -463,14 +471,218 @@ function lookupScore(index, home, away, kickoffUtc) {
   return extractScore(lookupMatch(index, home, away, kickoffUtc), home, away);
 }
 
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function teamLabelFromAny(name) {
+  if (!name) return "";
+  for (const [en, de] of Object.entries(TEAM_DE)) {
+    if (normalizeTeam(en) === normalizeTeam(name)) return de;
+  }
+  return name;
+}
+
+function meszDateToEspnParam(isoDate) {
+  return isoDate.replace(/-/g, "");
+}
+
+function parseEspnDetails(details, teamById) {
+  return (details || []).map((detail) => ({
+    minute: detail.clock?.displayValue || "",
+    type: detail.type?.text || "",
+    scoringPlay: Boolean(detail.scoringPlay),
+    yellowCard: Boolean(detail.yellowCard),
+    redCard: Boolean(detail.redCard),
+    ownGoal: Boolean(detail.ownGoal),
+    athlete: detail.athletesInvolved?.[0]?.displayName || null,
+    team: teamById.get(detail.team?.id) || null
+  }));
+}
+
+function parseEspnEvent(event) {
+  const comp = event.competitions[0];
+  const status = comp.status;
+  const teamById = new Map();
+  let homeTeam = "";
+  let awayTeam = "";
+  let homeScore = 0;
+  let awayScore = 0;
+
+  for (const competitor of comp.competitors) {
+    const name = competitor.team.displayName;
+    const score = Number.parseInt(competitor.score, 10) || 0;
+    teamById.set(competitor.team.id, name);
+    if (competitor.homeAway === "home") {
+      homeTeam = name;
+      homeScore = score;
+    } else {
+      awayTeam = name;
+      awayScore = score;
+    }
+  }
+
+  const details = parseEspnDetails(comp.details, teamById);
+
+  return {
+    eventId: event.id,
+    kickoffUtc: new Date(event.date),
+    homeTeam,
+    awayTeam,
+    homeScore,
+    awayScore,
+    state: status.type.state,
+    displayClock: status.displayClock,
+    shortDetail: status.type.shortDetail,
+    teamById,
+    details,
+    hasEvents: details.length > 0
+  };
+}
+
+function buildEspnIndex(rawEvents) {
+  const index = new Map();
+  const seen = new Set();
+
+  for (const event of rawEvents) {
+    if (!event?.competitions?.[0] || seen.has(event.id)) continue;
+    seen.add(event.id);
+
+    const parsed = parseEspnEvent(event);
+    const pairKey = teamKey(parsed.homeTeam, parsed.awayTeam);
+    const exactKey = `${pairKey}|${parsed.kickoffUtc.toISOString()}`;
+
+    index.set(exactKey, parsed);
+
+    const existing = index.get(pairKey);
+    const rank = { in: 3, post: 2, pre: 1 };
+    if (!existing || (rank[parsed.state] || 0) >= (rank[existing.state] || 0)) {
+      index.set(pairKey, parsed);
+    }
+  }
+
+  return index;
+}
+
+async function fetchEspnScoreboard(meszDate) {
+  const dates = [shiftIsoDate(meszDate, -1), meszDate, shiftIsoDate(meszDate, 1)];
+  const uniqueParams = [...new Set(dates.map(meszDateToEspnParam))];
+
+  const responses = await Promise.all(
+    uniqueParams.map((param) => fetch(`${ESPN_SCOREBOARD_URL}?dates=${param}`))
+  );
+
+  const events = [];
+  for (const res of responses) {
+    if (!res.ok) continue;
+    const data = await res.json();
+    events.push(...(data.events || []));
+  }
+
+  return buildEspnIndex(events);
+}
+
+function lookupEspnMatch(index, home, away, kickoffUtc) {
+  const pairKey = teamKey(home, away);
+  const exactKey = `${pairKey}|${kickoffUtc.toISOString()}`;
+  if (index.has(exactKey)) return index.get(exactKey);
+
+  if (index.has(pairKey)) return index.get(pairKey);
+
+  let best = null;
+  let bestDiff = Infinity;
+  for (const [key, match] of index.entries()) {
+    if (!key.startsWith(`${pairKey}|`)) continue;
+    const diff = Math.abs(match.kickoffUtc - kickoffUtc);
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      best = match;
+    }
+  }
+  return bestDiff <= 3 * 60 * 60 * 1000 ? best : null;
+}
+
+function orientEspnScore(espnMatch, home, away) {
+  if (normalizeTeam(home) === normalizeTeam(espnMatch.homeTeam)) {
+    return [espnMatch.homeScore, espnMatch.awayScore];
+  }
+  return [espnMatch.awayScore, espnMatch.homeScore];
+}
+
+function extractSummaryEvents(keyEvents) {
+  return (keyEvents || [])
+    .filter((event) => event.scoringPlay)
+    .map((event) => ({
+      minute: event.clock?.displayValue || "",
+      type: event.type?.text || "Goal",
+      scoringPlay: true,
+      yellowCard: false,
+      redCard: false,
+      ownGoal: false,
+      athlete: event.participants?.[0]?.athlete?.displayName || null,
+      team: event.team?.displayName || null
+    }));
+}
+
+async function fetchEspnEvents(eventId) {
+  if (espnEventsCache.has(eventId)) return espnEventsCache.get(eventId);
+
+  const res = await fetch(`${ESPN_SUMMARY_URL}?event=${eventId}`);
+  if (!res.ok) throw new Error("Ereignisse konnten nicht geladen werden.");
+
+  const data = await res.json();
+  const events = extractSummaryEvents(data.keyEvents);
+  espnEventsCache.set(eventId, events);
+  return events;
+}
+
+function formatEventRows(events) {
+  if (!events.length) {
+    return `<p class="game-events-empty">Keine Tore gemeldet.</p>`;
+  }
+
+  const rows = events
+    .filter((event) => event.scoringPlay)
+    .map((event) => {
+      const icon = event.ownGoal ? "⚽ (ET)" : "⚽";
+      const scorer = event.athlete ? escapeHtml(event.athlete) : escapeHtml(event.type);
+      const team = event.team ? ` <span class="game-event-team">(${escapeHtml(teamLabelFromAny(event.team))})</span>` : "";
+      return `<li class="game-event"><span class="game-event-min">${escapeHtml(event.minute)}</span><span class="game-event-text">${icon} ${scorer}${team}</span></li>`;
+    })
+    .join("");
+
+  return `<ul class="game-events-list">${rows}</ul>`;
+}
+
+function scoreClassList(game) {
+  return [
+    "badge",
+    "score",
+    game.future ? "future" : "",
+    game.germany ? "germany" : "",
+    game.live ? "live" : "",
+    game.scoreClickable ? "score-btn" : ""
+  ].filter(Boolean).join(" ");
+}
+
 function formatScore(score) {
   if (!score) return "-:-";
   return `${score[0]}:${score[1]}`;
 }
 
-function resolveScore(index, home, away, kickoffUtc, future) {
-  if (future) return "-:-";
-  return formatScore(lookupScore(index, home, away, kickoffUtc));
+function resolveScore(scoreIndex, espnMatch, home, away, kickoffUtc, now) {
+  if (espnMatch && (espnMatch.state === "in" || espnMatch.state === "post")) {
+    return formatScore(orientEspnScore(espnMatch, home, away));
+  }
+
+  const openFootballScore = lookupScore(scoreIndex, home, away, kickoffUtc);
+  if (openFootballScore) return formatScore(openFootballScore);
+  if (kickoffUtc > now) return "-:-";
+  return "-:-";
 }
 
 function isLive(kickoffUtc, now) {
@@ -487,8 +699,21 @@ function renderGames(games, emptyMessage) {
     return;
   }
 
-  gamesEl.innerHTML = games.map((game) => `
-    <article class="game">
+  gamesEl.innerHTML = games.map((game) => {
+    const scoreInner = game.live && game.statusLabel && game.score !== "-:-"
+      ? `${escapeHtml(game.score)} · ${escapeHtml(game.statusLabel)}`
+      : escapeHtml(game.score);
+
+    const scoreEl = game.scoreClickable
+      ? `<button type="button" class="${scoreClassList(game)}" data-event-id="${game.espnEventId}" aria-expanded="${expandedEventIds.has(game.espnEventId) ? "true" : "false"}" aria-label="Spielereignisse anzeigen">${scoreInner}</button>`
+      : `<span class="${scoreClassList(game)}">${scoreInner}</span>`;
+
+    const eventsPanel = game.scoreClickable
+      ? `<div class="game-events" data-events-for="${game.espnEventId}" ${expandedEventIds.has(game.espnEventId) ? "" : "hidden"}></div>`
+      : "";
+
+    return `
+    <article class="game" data-game-id="${game.espnEventId || ""}">
       <div class="game-meta">
         <span class="badge time">${game.time}</span>
         <span class="tv ${game.tv.cls}"><img class="tv-logo" src="${game.tv.src}" alt="${game.tv.alt}" loading="lazy" decoding="async"></span>
@@ -496,33 +721,66 @@ function renderGames(games, emptyMessage) {
       </div>
       <div class="game-main">
         <div class="match">${game.match}</div>
-        <span class="badge score${game.future ? " future" : ""}${game.germany ? " germany" : ""}${game.live ? " live" : ""}">${game.score}</span>
+        ${scoreEl}
       </div>
+      ${eventsPanel}
     </article>
-  `).join("");
+  `;
+  }).join("");
+
+  for (const eventId of expandedEventIds) {
+    void populateEventsPanel(eventId);
+  }
 }
 
-function buildGamesList(fixtures, scoreIndex, meszSelectedDate, now) {
+async function populateEventsPanel(eventId) {
+  const panel = gamesEl.querySelector(`[data-events-for="${eventId}"]`);
+  if (!panel) return;
+
+  const game = currentGames.find((g) => g.espnEventId === eventId);
+  let events = game?.espnDetails?.length ? game.espnDetails : espnEventsCache.get(eventId);
+
+  if (!events?.length) {
+    panel.innerHTML = `<p class="game-events-loading">Lade Ereignisse …</p>`;
+    try {
+      events = await fetchEspnEvents(eventId);
+    } catch {
+      panel.innerHTML = `<p class="game-events-empty">Ereignisse nicht verfügbar.</p>`;
+      return;
+    }
+  }
+
+  panel.innerHTML = formatEventRows(events);
+}
+
+function buildGamesList(fixtures, scoreIndex, espnIndex, meszSelectedDate, now) {
   return fixtures
     .map((fixture) => {
       const kickoffUtc = new Date(fixture.kickoffUtc);
       const meszDate = formatDateInTz(kickoffUtc, MESZ_TZ);
       if (meszDate !== meszSelectedDate) return null;
 
-      const future = kickoffUtc > now;
-      const live = isLive(kickoffUtc, now);
+      const espnMatch = lookupEspnMatch(espnIndex, fixture.homeTeam, fixture.awayTeam, kickoffUtc);
+      const espnLive = espnMatch?.state === "in";
+      const espnDone = espnMatch?.state === "post";
+      const live = espnLive || isLive(kickoffUtc, now);
+      const future = kickoffUtc > now && !espnLive && !espnDone;
       const tv = getBroadcast(fixture.matchNumber);
 
       return {
         kickoffUtc,
         time: formatMeszTime(kickoffUtc),
         tv,
-        score: resolveScore(scoreIndex, fixture.homeTeam, fixture.awayTeam, kickoffUtc, future),
+        score: resolveScore(scoreIndex, espnMatch, fixture.homeTeam, fixture.awayTeam, kickoffUtc, now),
         future,
         live,
         germany: involvesGermany(fixture.homeTeam, fixture.awayTeam),
         match: formatMatchup(fixture.homeTeam, fixture.awayTeam),
-        place: formatVenue(fixture.hostCity)
+        place: formatVenue(fixture.hostCity),
+        espnEventId: espnMatch?.eventId || null,
+        espnDetails: espnMatch?.details || [],
+        statusLabel: espnLive ? (espnMatch.displayClock || espnMatch.shortDetail) : null,
+        scoreClickable: Boolean(espnMatch?.eventId && (espnLive || espnDone))
       };
     })
     .filter(Boolean)
@@ -560,17 +818,67 @@ async function fetchGameData() {
   return dataCache;
 }
 
-async function loadGames() {
+async function loadGames({ fixturesOnly = false } = {}) {
   const now = new Date();
   const meszSelected = getSelectedMeszDate(now);
 
   headingEl.textContent = formatDayHeading(dayOffset, now);
 
-  const { fixtures, scoreIndex } = await fetchGameData();
-  const games = buildGamesList(fixtures, scoreIndex, meszSelected, now);
+  const espnIndexPromise = fetchEspnScoreboard(meszSelected).catch(() => new Map());
 
-  renderGames(games, emptyDayMessage(dayOffset, now));
+  let fixtures;
+  let scoreIndex;
+  if (fixturesOnly && dataCache) {
+    ({ fixtures, scoreIndex } = dataCache);
+  } else {
+    ({ fixtures, scoreIndex } = await fetchGameData());
+  }
+
+  const espnIndex = await espnIndexPromise;
+  currentGames = buildGamesList(fixtures, scoreIndex, espnIndex, meszSelected, now);
+
+  renderGames(currentGames, emptyDayMessage(dayOffset, now));
   updateDayNav();
+  scheduleLivePoll(currentGames.some((game) => game.live));
+}
+
+function scheduleLivePoll(hasLive) {
+  if (livePollId) {
+    clearInterval(livePollId);
+    livePollId = null;
+  }
+  if (!hasLive) return;
+
+  livePollId = setInterval(() => {
+    void loadGames({ fixturesOnly: true });
+  }, ESPN_LIVE_REFRESH_MS);
+}
+
+function setupScoreInteractions() {
+  if (gamesEl.dataset.scoreBound) return;
+  gamesEl.dataset.scoreBound = "1";
+
+  gamesEl.addEventListener("click", (event) => {
+    const btn = event.target.closest(".score-btn");
+    if (!btn) return;
+
+    const eventId = btn.dataset.eventId;
+    const panel = gamesEl.querySelector(`[data-events-for="${eventId}"]`);
+    if (!panel) return;
+
+    const expanded = btn.getAttribute("aria-expanded") === "true";
+    if (expanded) {
+      expandedEventIds.delete(eventId);
+      btn.setAttribute("aria-expanded", "false");
+      panel.hidden = true;
+      return;
+    }
+
+    expandedEventIds.add(eventId);
+    btn.setAttribute("aria-expanded", "true");
+    panel.hidden = false;
+    void populateEventsPanel(eventId);
+  });
 }
 
 function updateDayNav() {
@@ -583,12 +891,14 @@ function updateDayNav() {
 function changeDay(delta) {
   if (!canShiftDay(delta)) return;
   dayOffset += delta;
+  expandedEventIds.clear();
   void loadGames();
 }
 
 function goToToday() {
   if (dayOffset === 0) return;
   dayOffset = 0;
+  expandedEventIds.clear();
   void loadGames();
 }
 
@@ -674,5 +984,6 @@ window.addEventListener("pageshow", () => {
 void stabilizeViewport();
 setupDaySwipe();
 setupDayNav();
+setupScoreInteractions();
 refresh();
 setInterval(refresh, REFRESH_MS);

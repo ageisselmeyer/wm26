@@ -294,6 +294,58 @@ h2 {
   border: 2px solid var(--green);
 }
 
+.score-btn {
+  cursor: pointer;
+  font: inherit;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.score-btn[aria-expanded="true"] {
+  box-shadow: 0 0 0 2px var(--yellow);
+}
+
+.game-events {
+  padding-top: 8px;
+  border-top: 1px solid var(--border-match);
+}
+
+.game-events-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.game-event {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 0.8125rem;
+}
+
+.game-event-min {
+  flex-shrink: 0;
+  width: 2.75rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.game-event-team {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.game-events-empty,
+.game-events-loading {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
 .empty,
 .error {
   margin: 0;
