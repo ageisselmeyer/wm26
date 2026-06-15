@@ -640,6 +640,22 @@ async function fetchEspnEvents(eventId) {
   return events;
 }
 
+function athleteLastName(name) {
+  if (!name) return "";
+  const parts = name.trim().split(/\s+/);
+  return parts[parts.length - 1] || name;
+}
+
+function formatGoalScorer(event) {
+  const country = event.team ? teamLabelFromAny(event.team) : "";
+  if (country && event.athlete) {
+    return `${escapeHtml(country)} (${escapeHtml(athleteLastName(event.athlete))})`;
+  }
+  if (country) return escapeHtml(country);
+  if (event.athlete) return escapeHtml(athleteLastName(event.athlete));
+  return escapeHtml(event.type);
+}
+
 function formatEventRows(events) {
   if (!events.length) {
     return `<p class="game-events-empty">Keine Tore gemeldet.</p>`;
@@ -649,9 +665,8 @@ function formatEventRows(events) {
     .filter((event) => event.scoringPlay)
     .map((event) => {
       const icon = event.ownGoal ? "⚽ (ET)" : "⚽";
-      const scorer = event.athlete ? escapeHtml(event.athlete) : escapeHtml(event.type);
-      const team = event.team ? ` <span class="game-event-team">(${escapeHtml(teamLabelFromAny(event.team))})</span>` : "";
-      return `<li class="game-event"><span class="game-event-min">${escapeHtml(event.minute)}</span><span class="game-event-text">${icon} ${scorer}${team}</span></li>`;
+      const scorer = formatGoalScorer(event);
+      return `<li class="game-event"><span class="game-event-min">${escapeHtml(event.minute)}</span><span class="game-event-text">${icon} ${scorer}</span></li>`;
     })
     .join("");
 
