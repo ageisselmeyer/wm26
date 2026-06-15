@@ -327,6 +327,7 @@ h2 {
   padding: 12px 16px;
   background: var(--blue);
   border-top: 1px solid var(--border-match);
+  touch-action: manipulation;
 }
 
 .day-nav-btn {
@@ -341,9 +342,11 @@ h2 {
   background: var(--surface);
   color: var(--white);
   font: inherit;
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
 }
 
 .day-nav-btn:hover:not(:disabled) {
