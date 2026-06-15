@@ -249,6 +249,13 @@ function formatMeszHeading(date) {
   }).format(date);
 }
 
+function formatMeszWeekday(date) {
+  return new Intl.DateTimeFormat("de-DE", {
+    timeZone: MESZ_TZ,
+    weekday: "long"
+  }).format(date);
+}
+
 function getMeszToday(now = new Date()) {
   return formatDateInTz(now, MESZ_TZ);
 }
@@ -267,6 +274,11 @@ function formatMeszHeadingForIso(isoDate) {
   return formatMeszHeading(new Date(Date.UTC(year, month - 1, day, 12, 0, 0)));
 }
 
+function formatMeszWeekdayForIso(isoDate) {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  return formatMeszWeekday(new Date(Date.UTC(year, month - 1, day, 12, 0, 0)));
+}
+
 function formatDayHeading(offset, now) {
   const meszToday = formatDateInTz(now, MESZ_TZ);
   const meszSelected = shiftIsoDate(meszToday, offset);
@@ -274,7 +286,7 @@ function formatDayHeading(offset, now) {
   if (offset === 0) return `📅 Heute, ${dateLabel}`;
   if (offset === -1) return `📅 Gestern, ${dateLabel}`;
   if (offset === 1) return `📅 Morgen, ${dateLabel}`;
-  return `📅 ${dateLabel}`;
+  return `📅 ${formatMeszWeekdayForIso(meszSelected)}, ${dateLabel}`;
 }
 
 function emptyDayMessage(offset, now) {
@@ -484,7 +496,7 @@ function renderGames(games, emptyMessage) {
       </div>
       <div class="game-main">
         <div class="match">${game.match}</div>
-        <span class="badge score${game.future ? " future" : ""}${game.germany && !game.future ? " germany" : ""}${game.live ? " live" : ""}">${game.score}</span>
+        <span class="badge score${game.future ? " future" : ""}${game.germany ? " germany" : ""}${game.live ? " live" : ""}">${game.score}</span>
       </div>
     </article>
   `).join("");

@@ -277,14 +277,17 @@ h2 {
   border: none;
 }
 
-.score.germany {
-  background: var(--yellow);
-}
-
 .score.future {
   background: transparent;
   color: var(--text-muted);
   border: 1px solid var(--border-match-strong);
+}
+
+.score.germany,
+.score.germany.future {
+  background: var(--yellow);
+  color: var(--black);
+  border: none;
 }
 
 .score.live {
