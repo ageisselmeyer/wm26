@@ -1,0 +1,282 @@
+html {
+  background-color: #111827;
+  color-scheme: dark;
+}
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  background: #111827;
+  color: #f9fafb;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+
+header {
+  text-align: center;
+  padding: max(20px, env(safe-area-inset-top)) 16px 20px;
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+  background: linear-gradient(180deg, #1f2937 0%, #111827 100%);
+  border-bottom: 1px solid #374151;
+}
+
+header h1 {
+  margin: 0;
+  font-size: clamp(1.375rem, 4vw, 1.75rem);
+  letter-spacing: 0.02em;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px;
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+.card {
+  background: #1f2937;
+  border-radius: 16px;
+  padding: clamp(16px, 3vw, 24px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+}
+
+h2 {
+  margin: 0 0 12px;
+  color: #60a5fa;
+  font-size: clamp(1.125rem, 2.5vw, 1.25rem);
+}
+
+#games {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.game {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "meta"
+    "match"
+    "place";
+  gap: 10px;
+  padding: 14px;
+  background: #111827;
+  border-radius: 12px;
+  border: 1px solid #374151;
+}
+
+.game-meta {
+  grid-area: meta;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.match {
+  grid-area: match;
+  font-size: clamp(0.9375rem, 2.5vw, 1.0625rem);
+  line-height: 1.35;
+}
+
+.matchup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+}
+
+.team {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.team .flag {
+  flex-shrink: 0;
+  font-size: 1.2em;
+  line-height: 1;
+}
+
+.team .name {
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.matchup .sep {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.place {
+  grid-area: place;
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.time {
+  background: #2563eb;
+}
+
+.tv {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0;
+  line-height: 0;
+}
+
+.tv-logo {
+  display: block;
+  height: 18px;
+  width: auto;
+  max-width: 88px;
+  object-fit: contain;
+}
+
+.tv.magenta .tv-logo {
+  height: 14px;
+  max-width: 96px;
+}
+
+.tv.ard .tv-logo {
+  height: 15px;
+  max-width: 72px;
+  filter: brightness(0) saturate(100%) invert(52%) sepia(90%) saturate(1800%) hue-rotate(196deg) brightness(108%) contrast(96%);
+  transform: translateY(-2px);
+}
+
+.score {
+  background: #1f2937;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid #374151;
+}
+
+.score.live {
+  border-color: #22c55e;
+  color: #86efac;
+}
+
+.status {
+  margin: 0 0 12px;
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.empty,
+.error {
+  margin: 0;
+  padding: 16px;
+  border-radius: 12px;
+  background: #111827;
+  color: #9ca3af;
+  text-align: center;
+}
+
+.error {
+  color: #fca5a5;
+  border: 1px solid #7f1d1d;
+}
+
+.attribution {
+  margin-top: 16px;
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-align: center;
+}
+
+.attribution a {
+  color: #93c5fd;
+  text-decoration: none;
+}
+
+.attribution a:hover {
+  text-decoration: underline;
+}
+
+/* Tablet: match + venue side by side */
+@media (min-width: 540px) {
+  .game {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "meta meta"
+      "match place";
+    align-items: start;
+    gap: 10px 16px;
+    padding: 16px;
+  }
+
+  .place {
+    text-align: right;
+    max-width: 11rem;
+  }
+}
+
+/* Desktop: single row */
+@media (min-width: 768px) {
+  #games {
+    gap: 0;
+  }
+
+  .card {
+    padding: 24px 28px;
+  }
+
+  .game {
+    grid-template-columns: minmax(11rem, auto) minmax(0, 1fr) minmax(9rem, 12rem);
+    grid-template-areas: "meta match place";
+    align-items: center;
+    gap: 16px 20px;
+    padding: 18px 4px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    border-bottom: 1px solid #374151;
+  }
+
+  .game:first-child {
+    padding-top: 8px;
+  }
+
+  .game:last-child {
+    border-bottom: none;
+    padding-bottom: 4px;
+  }
+
+  .place {
+    text-align: right;
+    max-width: none;
+    font-size: 0.9375rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding: 28px 24px;
+  }
+
+  .game {
+    grid-template-columns: 13rem minmax(0, 1fr) 11rem;
+    gap: 20px 24px;
+    padding: 20px 4px;
+  }
+}
