@@ -2,9 +2,10 @@ const FIXTURES_URL = "https://www.thestatsapi.com/world-cup/data/fixtures.json";
 const RESULTS_URL = "https://cdn.jsdelivr.net/gh/openfootball/worldcup.json@master/2026/worldcup.json";
 const CUP_TXT_URL = "https://raw.githubusercontent.com/openfootball/worldcup/master/2026--usa/cup.txt";
 const MESZ_TZ = "Europe/Berlin";
-const US_TZ = "America/New_York";
 const MATCH_DURATION_MS = 105 * 60 * 1000;
 const REFRESH_MS = 60 * 1000;
+const TOURNAMENT_START = "2026-06-11";
+const TOURNAMENT_END = "2026-07-19";
 
 // Free-TV assignment per FIFA match number (Spiegel / anstosszeiten.de, June 2026)
 const BROADCAST_BY_MATCH = {
@@ -189,6 +190,17 @@ const gamesEl = document.getElementById("games");
 const statusEl = document.getElementById("status");
 const headingEl = document.getElementById("heading");
 const appEl = document.getElementById("app");
+const dayPrevBtn = document.getElementById("day-prev");
+const dayNextBtn = document.getElementById("day-next");
+const dayTodayBtn = document.getElementById("day-today");
+
+let dayOffset = 0;
+let dataCache = null;
+
+const SWIPE_MIN_PX = 50;
+const SWIPE_MAX_VERTICAL_PX = 60;
+let touchStartX = 0;
+let touchStartY = 0;
 
 function normalizeTeam(name) {
   const key = name
@@ -235,6 +247,41 @@ function formatMeszHeading(date) {
     day: "numeric",
     month: "long"
   }).format(date);
+}
+
+function getMeszToday(now = new Date()) {
+  return formatDateInTz(now, MESZ_TZ);
+}
+
+function getSelectedMeszDate(now = new Date()) {
+  return shiftIsoDate(getMeszToday(now), dayOffset);
+}
+
+function canShiftDay(delta, now = new Date()) {
+  const next = shiftIsoDate(getSelectedMeszDate(now), delta);
+  return next >= TOURNAMENT_START && next <= TOURNAMENT_END;
+}
+
+function formatMeszHeadingForIso(isoDate) {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  return formatMeszHeading(new Date(Date.UTC(year, month - 1, day, 12, 0, 0)));
+}
+
+function formatDayHeading(offset, now) {
+  const meszToday = formatDateInTz(now, MESZ_TZ);
+  const meszSelected = shiftIsoDate(meszToday, offset);
+  const dateLabel = formatMeszHeadingForIso(meszSelected);
+  if (offset === 0) return `📅 Heute, ${dateLabel}`;
+  if (offset === -1) return `📅 Gestern, ${dateLabel}`;
+  if (offset === 1) return `📅 Morgen, ${dateLabel}`;
+  return `📅 ${dateLabel}`;
+}
+
+function emptyDayMessage(offset, now) {
+  if (offset === 0) return "Heute keine Spiele.";
+  if (offset === -1) return "Gestern keine Spiele.";
+  if (offset === 1) return "Morgen keine Spiele.";
+  return `Keine Spiele am ${formatMeszHeadingForIso(shiftIsoDate(formatDateInTz(now, MESZ_TZ), offset))}.`;
 }
 
 function parseOpenFootballKickoff(date, timeStr) {
@@ -418,9 +465,9 @@ function isLive(kickoffUtc, now) {
   return kickoffUtc <= now && now < new Date(kickoffUtc.getTime() + MATCH_DURATION_MS);
 }
 
-function renderGames(games) {
+function renderGames(games, emptyMessage) {
   if (!games.length) {
-    gamesEl.innerHTML = '<p class="empty">Heute keine Spiele.</p>';
+    gamesEl.innerHTML = `<p class="empty">${emptyMessage}</p>`;
     return;
   }
 
@@ -437,13 +484,35 @@ function renderGames(games) {
   `).join("");
 }
 
-async function loadGames() {
-  const now = new Date();
-  const meszToday = formatDateInTz(now, MESZ_TZ);
-  const usToday = formatDateInTz(now, US_TZ);
-  const usYesterday = shiftIsoDate(usToday, -1);
+function buildGamesList(fixtures, scoreIndex, meszSelectedDate, now) {
+  return fixtures
+    .map((fixture) => {
+      const kickoffUtc = new Date(fixture.kickoffUtc);
+      const meszDate = formatDateInTz(kickoffUtc, MESZ_TZ);
+      if (meszDate !== meszSelectedDate) return null;
 
-  headingEl.textContent = `📅 Heute, ${formatMeszHeading(now)}`;
+      const future = kickoffUtc > now;
+      const live = isLive(kickoffUtc, now);
+      const tv = getBroadcast(fixture.matchNumber);
+
+      return {
+        kickoffUtc,
+        time: formatMeszTime(kickoffUtc),
+        tv,
+        score: resolveScore(scoreIndex, fixture.homeTeam, fixture.awayTeam, kickoffUtc, future),
+        live,
+        match: formatMatchup(fixture.homeTeam, fixture.awayTeam),
+        place: formatVenue(fixture.hostCity)
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.kickoffUtc - b.kickoffUtc);
+}
+
+async function fetchGameData() {
+  if (dataCache && Date.now() - dataCache.at < REFRESH_MS) {
+    return dataCache;
+  }
 
   const [fixturesRes, resultsRes, cupTxtRes] = await Promise.all([
     fetch(FIXTURES_URL),
@@ -463,42 +532,79 @@ async function loadGames() {
     ...(resultsData.matches || [])
   ]);
 
-  const games = fixturesData.fixtures
-    .map((fixture) => {
-      const kickoffUtc = new Date(fixture.kickoffUtc);
-      const usDate = formatDateInTz(kickoffUtc, US_TZ);
-      if (usDate !== usToday && usDate !== usYesterday) return null;
+  dataCache = {
+    at: Date.now(),
+    fixtures: fixturesData.fixtures,
+    scoreIndex
+  };
+  return dataCache;
+}
 
-      const meszDate = formatDateInTz(kickoffUtc, MESZ_TZ);
-      if (meszDate !== meszToday) return null;
+async function loadGames() {
+  const now = new Date();
+  const meszSelected = getSelectedMeszDate(now);
 
-      const future = kickoffUtc > now;
-      const live = isLive(kickoffUtc, now);
-      const tv = getBroadcast(fixture.matchNumber);
+  headingEl.textContent = formatDayHeading(dayOffset, now);
 
-      return {
-        kickoffUtc,
-        time: formatMeszTime(kickoffUtc),
-        tv,
-        score: resolveScore(scoreIndex, fixture.homeTeam, fixture.awayTeam, kickoffUtc, future),
-        live,
-        match: formatMatchup(fixture.homeTeam, fixture.awayTeam),
-        place: formatVenue(fixture.hostCity)
-      };
-    })
-    .filter(Boolean)
-    .sort((a, b) => a.kickoffUtc - b.kickoffUtc);
+  const { fixtures, scoreIndex } = await fetchGameData();
+  const games = buildGamesList(fixtures, scoreIndex, meszSelected, now);
 
   const liveCount = games.filter((game) => game.live).length;
   statusEl.textContent = liveCount
     ? `${games.length} Spiele · ${liveCount} live · MESZ`
     : `${games.length} Spiele · MESZ`;
 
-  renderGames(games);
+  renderGames(games, emptyDayMessage(dayOffset, now));
+  updateDayNav();
+}
+
+function updateDayNav() {
+  const now = new Date();
+  if (dayPrevBtn) dayPrevBtn.disabled = !canShiftDay(-1, now);
+  if (dayNextBtn) dayNextBtn.disabled = !canShiftDay(1, now);
+  if (dayTodayBtn) dayTodayBtn.disabled = dayOffset === 0;
+}
+
+function changeDay(delta) {
+  if (!canShiftDay(delta)) return;
+  dayOffset += delta;
+  void loadGames();
+}
+
+function goToToday() {
+  if (dayOffset === 0) return;
+  dayOffset = 0;
+  void loadGames();
+}
+
+function setupDayNav() {
+  dayPrevBtn?.addEventListener("click", () => changeDay(-1));
+  dayNextBtn?.addEventListener("click", () => changeDay(1));
+  dayTodayBtn?.addEventListener("click", goToToday);
+}
+
+function setupDaySwipe() {
+  if (!appEl) return;
+
+  appEl.addEventListener("touchstart", (event) => {
+    if (event.touches.length !== 1) return;
+    touchStartX = event.touches[0].clientX;
+    touchStartY = event.touches[0].clientY;
+  }, { passive: true });
+
+  appEl.addEventListener("touchend", (event) => {
+    if (event.changedTouches.length !== 1) return;
+    const dx = event.changedTouches[0].clientX - touchStartX;
+    const dy = event.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) < SWIPE_MIN_PX) return;
+    if (Math.abs(dy) > SWIPE_MAX_VERTICAL_PX && Math.abs(dy) > Math.abs(dx)) return;
+    changeDay(dx < 0 ? 1 : -1);
+  }, { passive: true });
 }
 
 async function refresh() {
   try {
+    dataCache = null;
     await loadGames();
   } catch (error) {
     statusEl.textContent = "";
@@ -576,5 +682,7 @@ window.addEventListener("pageshow", () => {
 });
 
 void stabilizeViewport();
+setupDaySwipe();
+setupDayNav();
 refresh();
 setInterval(refresh, REFRESH_MS);
