@@ -60,12 +60,12 @@ h2 {
 
 .game {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
-    "meta"
-    "match"
-    "place";
-  gap: 10px;
+    "meta meta"
+    "match place";
+  align-items: start;
+  gap: 10px 16px;
   padding: 14px;
   background: #111827;
   border-radius: 12px;
@@ -117,9 +117,33 @@ h2 {
 }
 
 .place {
-  grid-area: place;
   color: #9ca3af;
   font-size: 0.875rem;
+  min-width: 0;
+}
+
+.venue {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.venue .flag {
+  flex-shrink: 0;
+  font-size: 1.1em;
+  line-height: 1;
+}
+
+.venue .name {
+  word-break: break-word;
+}
+
+.game > .score {
+  grid-area: place;
+  width: fit-content;
+  justify-self: end;
+  align-self: center;
 }
 
 .badge {
@@ -213,57 +237,18 @@ h2 {
   text-decoration: underline;
 }
 
-/* Tablet: match + venue side by side */
-@media (min-width: 540px) {
-  .game {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      "meta meta"
-      "match place";
-    align-items: start;
-    gap: 10px 16px;
-    padding: 16px;
-  }
-
-  .place {
-    text-align: right;
-    max-width: 11rem;
-  }
-}
-
-/* Desktop: single row */
+/* Desktop: slightly roomier cards, same two-line layout */
 @media (min-width: 768px) {
-  #games {
-    gap: 0;
-  }
-
   .card {
     padding: 24px 28px;
   }
 
   .game {
-    grid-template-columns: minmax(11rem, auto) minmax(0, 1fr) minmax(9rem, 12rem);
-    grid-template-areas: "meta match place";
-    align-items: center;
-    gap: 16px 20px;
-    padding: 18px 4px;
-    background: transparent;
-    border: none;
-    border-radius: 0;
-    border-bottom: 1px solid #374151;
+    padding: 16px;
+    gap: 10px 20px;
   }
 
-  .game:first-child {
-    padding-top: 8px;
-  }
-
-  .game:last-child {
-    border-bottom: none;
-    padding-bottom: 4px;
-  }
-
-  .place {
-    text-align: right;
+  .game-meta .place {
     max-width: none;
     font-size: 0.9375rem;
   }
@@ -272,11 +257,5 @@ h2 {
 @media (min-width: 1024px) {
   .container {
     padding: 28px 24px;
-  }
-
-  .game {
-    grid-template-columns: 13rem minmax(0, 1fr) 11rem;
-    gap: 20px 24px;
-    padding: 20px 4px;
   }
 }

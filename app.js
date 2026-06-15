@@ -299,13 +299,13 @@ function formatMatchup(home, away) {
   return `<div class="matchup">${formatTeam(home)}<span class="sep">–</span>${formatTeam(away)}</div>`;
 }
 
-function venueLabel(hostCity) {
+function formatVenue(hostCity) {
   const city = HOST_CITIES[hostCity];
   if (!city) {
     const label = hostCity.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-    return `🏟️ ${label}`;
+    return `<span class="venue"><span class="flag" aria-hidden="true">🏳️</span><span class="name">${label}</span></span>`;
   }
-  return `🏟️ ${city.label} ${city.flag}`;
+  return `<span class="venue"><span class="flag" aria-hidden="true">${city.flag}</span><span class="name">${city.label}</span></span>`;
 }
 
 function getBroadcast(matchNumber) {
@@ -428,10 +428,10 @@ function renderGames(games) {
       <div class="game-meta">
         <span class="badge time">${game.time}</span>
         <span class="tv ${game.tv.cls}"><img class="tv-logo" src="${game.tv.src}" alt="${game.tv.alt}" loading="lazy" decoding="async"></span>
-        <span class="badge score${game.live ? " live" : ""}">${game.score}</span>
+        <span class="place">${game.place}</span>
       </div>
       <div class="match">${game.match}</div>
-      <div class="place">${game.place}</div>
+      <span class="badge score${game.live ? " live" : ""}">${game.score}</span>
     </article>
   `).join("");
 }
@@ -482,7 +482,7 @@ async function loadGames() {
         score: resolveScore(scoreIndex, fixture.homeTeam, fixture.awayTeam, kickoffUtc, future),
         live,
         match: formatMatchup(fixture.homeTeam, fixture.awayTeam),
-        place: venueLabel(fixture.hostCity)
+        place: formatVenue(fixture.hostCity)
       };
     })
     .filter(Boolean)
