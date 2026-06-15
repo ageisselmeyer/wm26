@@ -188,6 +188,7 @@ const HOST_CITIES = {
 const gamesEl = document.getElementById("games");
 const statusEl = document.getElementById("status");
 const headingEl = document.getElementById("heading");
+const appEl = document.getElementById("app");
 
 function normalizeTeam(name) {
   const key = name
@@ -505,5 +506,75 @@ async function refresh() {
   }
 }
 
+let viewportLocked = false;
+let lockedViewportHeightPx = null;
+
+const VIEWPORT_STABLE_FRAMES = 4;
+const VIEWPORT_STABLE_MAX_MS = 600;
+const VIEWPORT_POST_STABLE_MS = 120;
+
+function readViewportHeight() {
+  return window.visualViewport?.height ?? window.innerHeight;
+}
+
+function applyLockedViewportHeight(px) {
+  document.documentElement.style.height = `${px}px`;
+  document.body.style.height = "";
+}
+
+function lockViewportHeight(px) {
+  lockedViewportHeightPx = px;
+  applyLockedViewportHeight(px);
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitForStableViewportHeight() {
+  const start = performance.now();
+  let last = -1;
+  let stableFrames = 0;
+
+  while (performance.now() - start < VIEWPORT_STABLE_MAX_MS) {
+    await new Promise(requestAnimationFrame);
+    const h = Math.round(readViewportHeight());
+    if (h === last) {
+      stableFrames += 1;
+      if (stableFrames >= VIEWPORT_STABLE_FRAMES) {
+        await delay(VIEWPORT_POST_STABLE_MS);
+        return Math.round(readViewportHeight());
+      }
+    } else {
+      last = h;
+      stableFrames = 1;
+    }
+  }
+
+  return Math.round(readViewportHeight());
+}
+
+async function stabilizeViewport() {
+  if (viewportLocked) {
+    if (lockedViewportHeightPx !== null) applyLockedViewportHeight(lockedViewportHeightPx);
+    return;
+  }
+
+  appEl?.classList.remove("ready");
+  lockViewportHeight(await waitForStableViewportHeight());
+  appEl?.offsetHeight;
+  appEl?.classList.add("ready");
+  viewportLocked = true;
+}
+
+window.addEventListener("pageshow", () => {
+  if (!viewportLocked) {
+    void stabilizeViewport();
+  } else if (lockedViewportHeightPx !== null) {
+    applyLockedViewportHeight(lockedViewportHeightPx);
+  }
+});
+
+void stabilizeViewport();
 refresh();
 setInterval(refresh, REFRESH_MS);
