@@ -465,6 +465,10 @@ function isLive(kickoffUtc, now) {
   return kickoffUtc <= now && now < new Date(kickoffUtc.getTime() + MATCH_DURATION_MS);
 }
 
+function involvesGermany(home, away) {
+  return home === "Germany" || away === "Germany";
+}
+
 function renderGames(games, emptyMessage) {
   if (!games.length) {
     gamesEl.innerHTML = `<p class="empty">${emptyMessage}</p>`;
@@ -478,8 +482,10 @@ function renderGames(games, emptyMessage) {
         <span class="tv ${game.tv.cls}"><img class="tv-logo" src="${game.tv.src}" alt="${game.tv.alt}" loading="lazy" decoding="async"></span>
         <span class="place">${game.place}</span>
       </div>
-      <div class="match">${game.match}</div>
-      <span class="badge score${game.live ? " live" : ""}">${game.score}</span>
+      <div class="game-main">
+        <div class="match">${game.match}</div>
+        <span class="badge score${game.future ? " future" : ""}${game.germany && !game.future ? " germany" : ""}${game.live ? " live" : ""}">${game.score}</span>
+      </div>
     </article>
   `).join("");
 }
@@ -500,7 +506,9 @@ function buildGamesList(fixtures, scoreIndex, meszSelectedDate, now) {
         time: formatMeszTime(kickoffUtc),
         tv,
         score: resolveScore(scoreIndex, fixture.homeTeam, fixture.awayTeam, kickoffUtc, future),
+        future,
         live,
+        germany: involvesGermany(fixture.homeTeam, fixture.awayTeam),
         match: formatMatchup(fixture.homeTeam, fixture.awayTeam),
         place: formatVenue(fixture.hostCity)
       };
