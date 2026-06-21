@@ -356,6 +356,11 @@ h2 {
   text-align: right;
 }
 
+.game-event-flag {
+  font-size: 1.1em;
+  line-height: 1;
+}
+
 .game-event-team {
   color: var(--text-muted);
   font-weight: 400;

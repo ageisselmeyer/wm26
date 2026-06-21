@@ -480,6 +480,14 @@ function teamLabelFromAny(name) {
   return name;
 }
 
+function teamFlagFromAny(name) {
+  if (!name) return "🏳️";
+  for (const en of Object.keys(TEAM_FLAGS)) {
+    if (normalizeTeam(en) === normalizeTeam(name)) return TEAM_FLAGS[en];
+  }
+  return "🏳️";
+}
+
 function meszDateToEspnParam(isoDate) {
   return isoDate.replace(/-/g, "");
 }
@@ -641,10 +649,13 @@ function athleteLastName(name) {
 
 function formatGoalScorer(event) {
   const country = event.team ? teamLabelFromAny(event.team) : "";
+  const flag = event.team ? teamFlagFromAny(event.team) : "";
   if (country && event.athlete) {
-    return `${escapeHtml(country)} (${escapeHtml(athleteLastName(event.athlete))})`;
+    return `<span class="game-event-flag" aria-hidden="true">${flag}</span> ${escapeHtml(country)} (${escapeHtml(athleteLastName(event.athlete))})`;
   }
-  if (country) return escapeHtml(country);
+  if (country) {
+    return `<span class="game-event-flag" aria-hidden="true">${flag}</span> ${escapeHtml(country)}`;
+  }
   if (event.athlete) return escapeHtml(athleteLastName(event.athlete));
   return escapeHtml(event.type);
 }
@@ -657,9 +668,8 @@ function formatEventRows(events) {
   const rows = events
     .filter((event) => event.scoringPlay)
     .map((event) => {
-      const icon = event.ownGoal ? "⚽ (ET)" : "⚽";
       const scorer = formatGoalScorer(event);
-      return `<li class="game-event"><span class="game-event-min">${escapeHtml(event.minute)}</span><span class="game-event-text">${icon} ${scorer}</span></li>`;
+      return `<li class="game-event"><span class="game-event-min">${escapeHtml(event.minute)}</span><span class="game-event-text">${scorer}</span></li>`;
     })
     .join("");
 
