@@ -911,6 +911,12 @@ function goToToday() {
   void loadGames();
 }
 
+function setupButtonBlur() {
+  appEl?.addEventListener("touchend", (event) => {
+    event.target.closest("button")?.blur();
+  }, { passive: true });
+}
+
 function setupDayNav() {
   dayPrevBtn?.addEventListener("click", () => changeDay(-1));
   dayNextBtn?.addEventListener("click", () => changeDay(1));
@@ -993,6 +999,7 @@ window.addEventListener("pageshow", () => {
 void stabilizeViewport();
 setupDaySwipe();
 setupDayNav();
+setupButtonBlur();
 setupScoreInteractions();
 refresh();
 setInterval(refresh, REFRESH_MS);
