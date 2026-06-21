@@ -28,22 +28,15 @@ const BROADCAST_BY_MATCH = {
 };
 
 const BROADCAST_CHANNELS = {
-  ard: {
-    cls: "ard",
-    src: "https://upload.wikimedia.org/wikipedia/commons/f/fd/ARD_2003_logo.svg",
-    alt: "ARD"
-  },
-  zdf: {
-    cls: "zdf",
-    src: "https://upload.wikimedia.org/wikipedia/commons/c/c1/ZDF_logo.svg",
-    alt: "ZDF"
-  },
-  magenta: {
-    cls: "magenta",
-    src: "https://upload.wikimedia.org/wikipedia/commons/1/13/Magenta_TV_Logo_%282021%29.svg",
-    alt: "MagentaTV"
-  }
+  ard: { cls: "ard", alt: "ARD", key: "ard" },
+  zdf: { cls: "zdf", alt: "ZDF", key: "zdf" },
+  magenta: { cls: "magenta", alt: "MagentaTV", key: "magenta" }
 };
+
+function tvLogoHtml(channel, uid) {
+  const svg = TV_LOGOS[channel.key].replaceAll("magenta-icon", `mi-${uid}`);
+  return `<span class="tv ${channel.cls}" role="img" aria-label="${channel.alt}"><span class="tv-logo">${svg}</span></span>`;
+}
 
 const TEAM_ALIASES = {
   "cote d ivoire": "ivory coast",
@@ -731,7 +724,7 @@ function renderGames(games, emptyMessage) {
     <article class="game" data-game-id="${game.espnEventId || ""}">
       <div class="game-meta">
         <span class="badge time">${game.time}</span>
-        <span class="tv ${game.tv.cls}"><img class="tv-logo" src="${game.tv.src}" alt="${game.tv.alt}" loading="lazy" decoding="async"></span>
+        ${game.tvHtml}
         <span class="place">${game.place}</span>
       </div>
       <div class="game-main">
@@ -786,6 +779,7 @@ function buildGamesList(fixtures, scoreIndex, espnIndex, meszSelectedDate, now) 
         kickoffUtc,
         time: formatMeszTime(kickoffUtc),
         tv,
+        tvHtml: tvLogoHtml(tv, fixture.matchNumber),
         score: resolveScore(scoreIndex, espnMatch, fixture.homeTeam, fixture.awayTeam, kickoffUtc, now),
         future,
         live,

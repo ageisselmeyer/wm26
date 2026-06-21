@@ -248,12 +248,19 @@ h2 {
 .tv-logo {
   display: block;
   height: 18px;
-  width: auto;
   max-width: 88px;
-  object-fit: contain;
+  line-height: 0;
 }
 
-.tv.magenta .tv-logo {
+.tv-logo svg {
+  display: block;
+  height: 18px;
+  width: auto;
+  max-width: 88px;
+}
+
+.tv.magenta .tv-logo,
+.tv.magenta .tv-logo svg {
   height: 14px;
   max-width: 96px;
 }
@@ -261,11 +268,17 @@ h2 {
 .tv.ard .tv-logo {
   height: 14px;
   max-width: 96px;
-  filter: brightness(0) saturate(100%) invert(52%) sepia(90%) saturate(1800%) hue-rotate(196deg) brightness(108%) contrast(96%);
+  color: #4da3ff;
   transform: translateY(-1px);
 }
 
-.tv.zdf .tv-logo {
+.tv.ard .tv-logo svg {
+  height: 14px;
+  max-width: 96px;
+}
+
+.tv.zdf .tv-logo,
+.tv.zdf .tv-logo svg {
   height: 24px;
   max-width: 132px;
 }
