@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fetch TV senders and kickoff times from anstosszeiten.de and update anstosszeiten.json."""
+"""Fetch TV senders and kickoff times from anstosszeiten.de and update anstosszeiten.js."""
 
 from __future__ import annotations
 
@@ -12,7 +12,8 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / "anstosszeiten.json"
+OUTPUT_JS = ROOT / "anstosszeiten.js"
+OUTPUT_JSON = ROOT / "scripts" / "anstosszeiten-data.json"
 FIXTURES_URL = "https://www.thestatsapi.com/world-cup/data/fixtures.json"
 SPIELPLAN_URL = "https://anstosszeiten.de/spielplan/"
 
@@ -212,18 +213,14 @@ def main() -> int:
         "teams": teams,
     }
 
-    OUTPUT.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-    (ROOT / "scripts" / "anstosszeiten-data.json").write_text(
-        json.dumps(payload, indent=2) + "\n",
-        encoding="utf-8",
-    )
-    (ROOT / "anstosszeiten.js").write_text(
+    OUTPUT_JSON.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    OUTPUT_JS.write_text(
         "window.ANSTOSSZEITEN_DATA = " + json.dumps(payload, separators=(",", ":")) + ";\n",
         encoding="utf-8",
     )
 
     print(
-        f"Updated {OUTPUT} ({len(broadcast)} broadcasts, "
+        f"Updated {OUTPUT_JS} ({len(broadcast)} broadcasts, "
         f"{len(kickoffs)} kickoff overrides, {len(teams)} team overrides)"
     )
     return 0

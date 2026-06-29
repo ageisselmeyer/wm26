@@ -389,10 +389,6 @@ function formatTeamAny(canonical, germanLabel) {
   return `<span class="team"><span class="flag" aria-hidden="true">🏳️</span><span class="name">${escapeHtml(label)}</span></span>`;
 }
 
-function formatMatchup(home, away) {
-  return `<div class="matchup">${formatTeam(home)}<span class="sep">–</span>${formatTeam(away)}</div>`;
-}
-
 function formatMatchupResolved(teams) {
   return `<div class="matchup">${formatTeamAny(teams.home, teams.homeDe)}<span class="sep">–</span>${formatTeamAny(teams.away, teams.awayDe)}</div>`;
 }
