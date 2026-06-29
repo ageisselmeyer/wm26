@@ -10,32 +10,57 @@ const ESPN_LIVE_REFRESH_MS = 30 * 1000;
 const TOURNAMENT_START = "2026-06-11";
 const TOURNAMENT_END = "2026-07-19";
 
-// Free-TV assignment per FIFA match number (Spiegel / anstosszeiten.de, June 2026)
-const BROADCAST_BY_MATCH = {
-  1: "zdf", 2: "magenta", 3: "ard", 4: "magenta", 5: "ard", 6: "magenta", 7: "zdf", 8: "zdf",
-  9: "ard", 10: "ard", 11: "magenta", 12: "magenta", 13: "zdf", 14: "ard", 15: "zdf", 16: "ard",
-  17: "magenta", 18: "magenta", 19: "ard", 20: "zdf", 21: "magenta", 22: "zdf", 23: "zdf", 24: "magenta",
-  25: "zdf", 26: "magenta", 27: "zdf", 28: "magenta", 29: "ard", 30: "magenta", 31: "magenta", 32: "ard",
-  33: "zdf", 34: "zdf", 35: "zdf", 36: "magenta", 37: "ard", 38: "magenta", 39: "zdf", 40: "magenta",
-  41: "magenta", 42: "ard", 43: "ard", 44: "zdf", 45: "ard", 46: "magenta", 47: "ard", 48: "ard",
-  49: "magenta", 50: "zdf", 51: "magenta", 52: "magenta", 53: "magenta", 54: "magenta", 55: "magenta", 56: "ard",
-  57: "magenta", 58: "magenta", 59: "magenta", 60: "ard", 61: "magenta", 62: "magenta", 63: "magenta", 64: "magenta",
-  65: "magenta", 66: "magenta", 67: "magenta", 68: "zdf", 69: "magenta", 70: "magenta", 71: "magenta", 72: "magenta",
-  73: "magenta", 74: "magenta", 75: "zdf", 76: "magenta", 77: "magenta", 78: "magenta", 79: "magenta", 80: "magenta",
-  81: "magenta", 82: "magenta", 83: "magenta", 84: "magenta", 85: "magenta", 86: "magenta", 87: "magenta", 88: "magenta",
-  89: "ard", 90: "magenta", 91: "zdf", 92: "magenta", 93: "ard", 94: "magenta", 95: "zdf", 96: "magenta",
-  97: "zdf", 98: "ard", 99: "zdf", 100: "ard", 101: "ard", 102: "zdf", 103: "ard", 104: "zdf"
-};
-
 const BROADCAST_CHANNELS = {
   ard: { cls: "ard", alt: "ARD", key: "ard" },
   zdf: { cls: "zdf", alt: "ZDF", key: "zdf" },
   magenta: { cls: "magenta", alt: "MagentaTV", key: "magenta" }
 };
 
+let broadcastByMatch = {};
+let kickoffOverrides = {};
+let teamOverrides = {};
+
+function applyAnstosszeitenData(data) {
+  if (!data) return;
+  broadcastByMatch = Object.fromEntries(
+    Object.entries(data.broadcast || {}).map(([key, value]) => [Number(key), value])
+  );
+  kickoffOverrides = Object.fromEntries(
+    Object.entries(data.kickoffs || {}).map(([key, value]) => [Number(key), value])
+  );
+  teamOverrides = Object.fromEntries(
+    Object.entries(data.teams || {}).map(([key, value]) => [Number(key), value])
+  );
+}
+
+applyAnstosszeitenData(window.ANSTOSSZEITEN_DATA);
+
 function tvLogoHtml(channel, uid) {
   const svg = TV_LOGOS[channel.key].replaceAll("magenta-icon", `mi-${uid}`);
   return `<span class="tv ${channel.cls}" role="img" aria-label="${channel.alt}"><span class="tv-logo">${svg}</span></span>`;
+}
+
+function tvLogosHtml(channels, uid) {
+  return channels.map((key, index) => tvLogoHtml(BROADCAST_CHANNELS[key], `${uid}-${index}`)).join("");
+}
+
+function normalizeChannelList(channels) {
+  const list = Array.isArray(channels) ? channels : [channels];
+  const seen = new Set();
+  return list.filter((key) => {
+    if (!BROADCAST_CHANNELS[key] || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function getBroadcastChannels(matchNumber, home, away) {
+  let channels = normalizeChannelList(broadcastByMatch[matchNumber] || ["magenta"]);
+  if (involvesGermany(home, away) && !channels.some((key) => key === "ard" || key === "zdf")) {
+    channels = ["ard", ...channels];
+  }
+  const freeTv = channels.filter((key) => key === "ard" || key === "zdf");
+  return freeTv.length ? freeTv : ["magenta"];
 }
 
 const TEAM_ALIASES = {
@@ -356,8 +381,51 @@ function formatTeam(name) {
   return `<span class="team"><span class="flag" aria-hidden="true">${teamFlag(name)}</span><span class="name">${teamLabel(name)}</span></span>`;
 }
 
+function formatTeamAny(canonical, germanLabel) {
+  if (canonical && TEAM_FLAGS[canonical]) {
+    return formatTeam(canonical);
+  }
+  const label = germanLabel || teamLabel(canonical);
+  return `<span class="team"><span class="flag" aria-hidden="true">🏳️</span><span class="name">${escapeHtml(label)}</span></span>`;
+}
+
 function formatMatchup(home, away) {
   return `<div class="matchup">${formatTeam(home)}<span class="sep">–</span>${formatTeam(away)}</div>`;
+}
+
+function formatMatchupResolved(teams) {
+  return `<div class="matchup">${formatTeamAny(teams.home, teams.homeDe)}<span class="sep">–</span>${formatTeamAny(teams.away, teams.awayDe)}</div>`;
+}
+
+function isPlaceholderTeam(name) {
+  if (!name) return true;
+  const value = name.toLowerCase();
+  return value.includes("group ")
+    || value.startsWith("winner ")
+    || value.includes("runners-up")
+    || value.includes("winners")
+    || value.includes("third place");
+}
+
+function resolveFixtureTeams(fixture) {
+  const override = teamOverrides[fixture.matchNumber];
+  if (!override) {
+    return { home: fixture.homeTeam, away: fixture.awayTeam };
+  }
+
+  const replace = fixture.matchNumber >= 73
+    || isPlaceholderTeam(fixture.homeTeam)
+    || isPlaceholderTeam(fixture.awayTeam);
+  if (!replace) {
+    return { home: fixture.homeTeam, away: fixture.awayTeam };
+  }
+
+  return {
+    home: override.home,
+    away: override.away,
+    homeDe: override.homeDe,
+    awayDe: override.awayDe
+  };
 }
 
 function formatVenue(hostCity) {
@@ -367,11 +435,6 @@ function formatVenue(hostCity) {
     return `<span class="venue"><span class="flag" aria-hidden="true">🏳️</span><span class="name">${label}</span></span>`;
   }
   return `<span class="venue"><span class="flag" aria-hidden="true">${city.flag}</span><span class="name">${city.label}</span></span>`;
-}
-
-function getBroadcast(matchNumber) {
-  const channel = BROADCAST_BY_MATCH[matchNumber] || "magenta";
-  return BROADCAST_CHANNELS[channel];
 }
 
 function hasScoreData(match) {
@@ -774,27 +837,28 @@ async function populateEventsPanel(eventId) {
 function buildGamesList(fixtures, scoreIndex, espnIndex, meszSelectedDate, now) {
   return fixtures
     .map((fixture) => {
-      const kickoffUtc = new Date(fixture.kickoffUtc);
+      const kickoffUtc = new Date(kickoffOverrides[fixture.matchNumber] || fixture.kickoffUtc);
       const meszDate = formatDateInTz(kickoffUtc, MESZ_TZ);
       if (meszDate !== meszSelectedDate) return null;
 
-      const espnMatch = lookupEspnMatch(espnIndex, fixture.homeTeam, fixture.awayTeam, kickoffUtc);
+      const teams = resolveFixtureTeams(fixture);
+      const espnMatch = lookupEspnMatch(espnIndex, teams.home, teams.away, kickoffUtc);
       const espnLive = espnMatch?.state === "in";
       const espnDone = espnMatch?.state === "post";
       const live = espnLive || isLive(kickoffUtc, now);
       const future = kickoffUtc > now && !espnLive && !espnDone;
-      const tv = getBroadcast(fixture.matchNumber);
+      const tvChannels = getBroadcastChannels(fixture.matchNumber, teams.home, teams.away);
 
       return {
         kickoffUtc,
         time: formatMeszTime(kickoffUtc),
-        tv,
-        tvHtml: tvLogoHtml(tv, fixture.matchNumber),
-        score: resolveScore(scoreIndex, espnMatch, fixture.homeTeam, fixture.awayTeam, kickoffUtc, now),
+        tvChannels,
+        tvHtml: tvLogosHtml(tvChannels, fixture.matchNumber),
+        score: resolveScore(scoreIndex, espnMatch, teams.home, teams.away, kickoffUtc, now),
         future,
         live,
-        germany: involvesGermany(fixture.homeTeam, fixture.awayTeam),
-        match: formatMatchup(fixture.homeTeam, fixture.awayTeam),
+        germany: involvesGermany(teams.home, teams.away),
+        match: formatMatchupResolved(teams),
         place: formatVenue(fixture.hostCity),
         espnEventId: espnMatch?.eventId || null,
         espnDetails: espnMatch?.details || [],
@@ -957,7 +1021,10 @@ async function refresh() {
     dataCache = null;
     await loadGames();
   } catch (error) {
-    gamesEl.innerHTML = `<p class="error">${error.message}</p>`;
+    const message = error?.message === "Load failed"
+      ? "Daten konnten nicht geladen werden. Bitte Internetverbindung prüfen."
+      : (error?.message || "Unbekannter Fehler.");
+    gamesEl.innerHTML = `<p class="error">${message}</p>`;
   }
 }
 
