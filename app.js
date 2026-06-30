@@ -437,6 +437,7 @@ function hasScoreData(match) {
   return Boolean(
     match.score?.ft ||
     match.score?.ht ||
+    match.score?.p ||
     match.goals1?.length ||
     match.goals2?.length
   );
@@ -500,20 +501,29 @@ function extractScore(matchData, homeTeam, awayTeam) {
 
   const mapScore = (a, b) => (homeIsT1 ? [a, b] : [b, a]);
 
+  if (matchData.score?.p) {
+    const mainSource = matchData.score.et ?? matchData.score.ft;
+    if (mainSource) {
+      const [s1, s2] = mainSource;
+      const [p1, p2] = matchData.score.p;
+      return { main: mapScore(s1, s2), pens: mapScore(p1, p2) };
+    }
+  }
+
   if (matchData.score?.ft) {
     const [s1, s2] = matchData.score.ft;
-    return mapScore(s1, s2);
+    return { main: mapScore(s1, s2), pens: null };
   }
 
   const g1 = matchData.goals1?.length ?? 0;
   const g2 = matchData.goals2?.length ?? 0;
   if (g1 > 0 || g2 > 0) {
-    return mapScore(g1, g2);
+    return { main: mapScore(g1, g2), pens: null };
   }
 
   if (matchData.score?.ht) {
     const [h1, h2] = matchData.score.ht;
-    return mapScore(h1, h2);
+    return { main: mapScore(h1, h2), pens: null };
   }
 
   return null;
@@ -572,6 +582,8 @@ function parseEspnEvent(event) {
   let awayTeam = "";
   let homeScore = 0;
   let awayScore = 0;
+  let homeShootoutScore = null;
+  let awayShootoutScore = null;
 
   for (const competitor of comp.competitors) {
     const name = competitor.team.displayName;
@@ -580,9 +592,15 @@ function parseEspnEvent(event) {
     if (competitor.homeAway === "home") {
       homeTeam = name;
       homeScore = score;
+      if (competitor.shootoutScore !== undefined && competitor.shootoutScore !== null) {
+        homeShootoutScore = Number(competitor.shootoutScore);
+      }
     } else {
       awayTeam = name;
       awayScore = score;
+      if (competitor.shootoutScore !== undefined && competitor.shootoutScore !== null) {
+        awayShootoutScore = Number(competitor.shootoutScore);
+      }
     }
   }
 
@@ -595,6 +613,8 @@ function parseEspnEvent(event) {
     awayTeam,
     homeScore,
     awayScore,
+    homeShootoutScore,
+    awayShootoutScore,
     state: status.type.state,
     displayClock: status.displayClock,
     shortDetail: status.type.shortDetail,
@@ -673,6 +693,16 @@ function orientEspnScore(espnMatch, home, away) {
   return [espnMatch.awayScore, espnMatch.homeScore];
 }
 
+function orientEspnShootoutScore(espnMatch, home, away) {
+  if (espnMatch.homeShootoutScore == null || espnMatch.awayShootoutScore == null) {
+    return null;
+  }
+  if (normalizeTeam(home) === normalizeTeam(espnMatch.homeTeam)) {
+    return [espnMatch.homeShootoutScore, espnMatch.awayShootoutScore];
+  }
+  return [espnMatch.awayShootoutScore, espnMatch.homeShootoutScore];
+}
+
 function extractSummaryEvents(keyEvents) {
   return (keyEvents || [])
     .filter((event) => event.scoringPlay)
@@ -746,18 +776,25 @@ function scoreClassList(game) {
   ].filter(Boolean).join(" ");
 }
 
-function formatScore(score) {
-  if (!score) return "-:-";
-  return `${score[0]}:${score[1]}`;
+function formatScoreResult(result) {
+  if (!result?.main) return "-:-";
+  const base = `${result.main[0]}:${result.main[1]}`;
+  if (result.pens) {
+    return `${base} (${result.pens[0]}:${result.pens[1]})`;
+  }
+  return base;
 }
 
 function resolveScore(scoreIndex, espnMatch, home, away, kickoffUtc, now) {
   if (espnMatch && (espnMatch.state === "in" || espnMatch.state === "post")) {
-    return formatScore(orientEspnScore(espnMatch, home, away));
+    return formatScoreResult({
+      main: orientEspnScore(espnMatch, home, away),
+      pens: orientEspnShootoutScore(espnMatch, home, away)
+    });
   }
 
   const openFootballScore = lookupScore(scoreIndex, home, away, kickoffUtc);
-  if (openFootballScore) return formatScore(openFootballScore);
+  if (openFootballScore) return formatScoreResult(openFootballScore);
   if (kickoffUtc > now) return "-:-";
   return "-:-";
 }
