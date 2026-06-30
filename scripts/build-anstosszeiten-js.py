@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fetch TV senders and kickoff times from anstosszeiten.de and update anstosszeiten.js."""
+"""Fetch data from anstosszeiten.de and update anstosszeiten.js + scripts/anstosszeiten.json."""
 
 from __future__ import annotations
 
@@ -13,8 +13,8 @@ from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT_JS = ROOT / "anstosszeiten.js"
-OUTPUT_JSON = ROOT / "scripts" / "anstosszeiten-data.json"
-FIXTURES_URL = "https://www.thestatsapi.com/world-cup/data/fixtures.json"
+OUTPUT_JSON = ROOT / "scripts" / "anstosszeiten.json"
+FIXTURES_PATH = ROOT / "scripts" / "fixtures.json"
 SPIELPLAN_URL = "https://anstosszeiten.de/spielplan/"
 
 DE_TO_EN = {
@@ -82,6 +82,55 @@ DE_MONTHS = {
     "November": 11,
     "Dezember": 12,
 }
+
+SPIELORT_SLUG_TO_HOST_CITY = {
+    "mexiko-stadt": "mexico-city",
+}
+
+VENUE_LABEL_TO_HOST_CITY = {
+    "Mexico City": "mexico-city",
+    "Mexiko-Stadt": "mexico-city",
+    "Guadalajara": "guadalajara",
+    "Monterrey": "monterrey",
+    "Toronto": "toronto",
+    "Vancouver": "vancouver",
+    "Los Angeles": "los-angeles",
+    "San Francisco": "san-francisco",
+    "Seattle": "seattle",
+    "Houston": "houston",
+    "Dallas": "dallas",
+    "Kansas City": "kansas-city",
+    "Atlanta": "atlanta",
+    "Miami": "miami",
+    "Boston": "boston",
+    "Philadelphia": "philadelphia",
+    "New York": "new-york",
+    "New York/New Jersey": "new-york",
+}
+
+
+def normalize_host_city(slug: str | None, label: str | None) -> str | None:
+    if slug:
+        return SPIELORT_SLUG_TO_HOST_CITY.get(slug, slug)
+    if label:
+        return VENUE_LABEL_TO_HOST_CITY.get(label, label.lower().replace(" ", "-"))
+    return None
+
+
+def parse_venue(card: str) -> str | None:
+    match = re.search(r'href="/spielort/([^/]+)/"', card)
+    if match:
+        return normalize_host_city(match.group(1), None)
+
+    match = re.search(r'data-cal-venue="([^"]+)"', card)
+    if match:
+        return normalize_host_city(None, match.group(1))
+
+    match = re.search(r"Spiel \d+ - [A-Za-z]{2}, \d{1,2}\. [A-Za-z]+ - ([^<]+)", card)
+    if match:
+        return normalize_host_city(None, match.group(1).strip())
+
+    return None
 
 
 def fetch_text(url: str) -> str:
@@ -156,7 +205,7 @@ def team_entry(home_de: str, away_de: str) -> dict[str, str]:
 
 def main() -> int:
     html = fetch_text(SPIELPLAN_URL)
-    fixtures = json.loads(fetch_text(FIXTURES_URL))["fixtures"]
+    fixtures = json.loads(FIXTURES_PATH.read_text(encoding="utf-8"))["fixtures"]
     cards = html.split("rounded-xl border border-gray-100 bg-white p-4")[1:]
 
     parsed_cards = []
@@ -171,6 +220,7 @@ def main() -> int:
                 "away": away,
                 "utc_cal": utc_match.group(1) if utc_match else None,
                 "senders": parse_senders(card),
+                "venue": parse_venue(card),
             }
         )
 
@@ -182,6 +232,7 @@ def main() -> int:
     broadcast: dict[str, list[str]] = {}
     kickoffs: dict[str, str] = {}
     teams: dict[str, dict[str, str]] = {}
+    venues: dict[str, str] = {}
 
     for fixture in fixtures:
         match_number = fixture["matchNumber"]
@@ -193,10 +244,12 @@ def main() -> int:
                 continue
             utc = entry["utc_cal"]
             senders = entry["senders"]
+            venue = entry["venue"]
         else:
             card = cards[match_number - 1]
             utc = to_utc(card, fixture["date"])
             senders = parse_senders(card)
+            venue = parse_venue(card)
             home_de, away_de = parse_knockout_teams(card)
             if home_de and away_de:
                 teams[key] = team_entry(home_de, away_de)
@@ -204,6 +257,8 @@ def main() -> int:
         broadcast[key] = senders or ["magenta"]
         if utc and utc != fixture["kickoffUtc"]:
             kickoffs[key] = utc
+        if venue:
+            venues[key] = venue
 
     payload = {
         "source": SPIELPLAN_URL,
@@ -211,6 +266,7 @@ def main() -> int:
         "broadcast": broadcast,
         "kickoffs": kickoffs,
         "teams": teams,
+        "venues": venues,
     }
 
     OUTPUT_JSON.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
@@ -221,7 +277,8 @@ def main() -> int:
 
     print(
         f"Updated {OUTPUT_JS} ({len(broadcast)} broadcasts, "
-        f"{len(kickoffs)} kickoff overrides, {len(teams)} team overrides)"
+        f"{len(kickoffs)} kickoff overrides, {len(teams)} team overrides, "
+        f"{len(venues)} venues)"
     )
     return 0
 

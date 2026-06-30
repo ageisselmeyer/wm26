@@ -1,4 +1,3 @@
-const FIXTURES_URL = "https://www.thestatsapi.com/world-cup/data/fixtures.json";
 const RESULTS_URL = "https://cdn.jsdelivr.net/gh/openfootball/worldcup.json@master/2026/worldcup.json";
 const CUP_TXT_URL = "https://raw.githubusercontent.com/openfootball/worldcup/master/2026--usa/cup.txt";
 const ESPN_SCOREBOARD_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard";
@@ -19,6 +18,7 @@ const BROADCAST_CHANNELS = {
 let broadcastByMatch = {};
 let kickoffOverrides = {};
 let teamOverrides = {};
+let venueOverrides = {};
 
 function applyAnstosszeitenData(data) {
   if (!data) return;
@@ -31,9 +31,20 @@ function applyAnstosszeitenData(data) {
   teamOverrides = Object.fromEntries(
     Object.entries(data.teams || {}).map(([key, value]) => [Number(key), value])
   );
+  venueOverrides = Object.fromEntries(
+    Object.entries(data.venues || {}).map(([key, value]) => [Number(key), value])
+  );
 }
 
 applyAnstosszeitenData(window.ANSTOSSZEITEN_DATA);
+
+function getFixtures() {
+  const fixtures = window.FIXTURES_DATA?.fixtures;
+  if (!fixtures?.length) {
+    throw new Error("Spielplan konnte nicht geladen werden.");
+  }
+  return fixtures;
+}
 
 function tvLogoHtml(channel, uid) {
   const svg = TV_LOGOS[channel.key].replaceAll("magenta-icon", `mi-${uid}`);
@@ -892,7 +903,7 @@ function buildGamesList(fixtures, scoreIndex, espnIndex, meszSelectedDate, now) 
         live,
         germany: involvesGermany(teams.home, teams.away),
         match: formatMatchupResolved(teams),
-        place: formatVenue(fixture.hostCity),
+        place: formatVenue(venueOverrides[fixture.matchNumber] || fixture.hostCity),
         espnEventId: espnMatch?.eventId || null,
         espnDetails: espnMatch?.details || [],
         statusLabel: espnLive ? (espnMatch.displayClock || espnMatch.shortDetail) : null,
@@ -908,17 +919,15 @@ async function fetchGameData() {
     return dataCache;
   }
 
-  const [fixturesRes, resultsRes, cupTxtRes] = await Promise.all([
-    fetch(FIXTURES_URL),
+  const [resultsRes, cupTxtRes] = await Promise.all([
     fetch(RESULTS_URL),
     fetch(CUP_TXT_URL)
   ]);
 
-  if (!fixturesRes.ok || !resultsRes.ok || !cupTxtRes.ok) {
+  if (!resultsRes.ok || !cupTxtRes.ok) {
     throw new Error("Daten konnten nicht geladen werden.");
   }
 
-  const fixturesData = await fixturesRes.json();
   const resultsData = await resultsRes.json();
   const cupTxtMatches = parseCupTxtScores(await cupTxtRes.text());
   const scoreIndex = buildScoreIndex([
@@ -928,7 +937,7 @@ async function fetchGameData() {
 
   dataCache = {
     at: Date.now(),
-    fixtures: fixturesData.fixtures,
+    fixtures: getFixtures(),
     scoreIndex
   };
   return dataCache;
