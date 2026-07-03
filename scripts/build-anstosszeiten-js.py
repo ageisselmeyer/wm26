@@ -203,6 +203,15 @@ def team_entry(home_de: str, away_de: str) -> dict[str, str]:
     }
 
 
+def find_knockout_card(cards: list[str], kickoff_utc: str, fixture_date: str) -> str | None:
+    """Match TV card by kickoff time — anstosszeiten FIFA numbers can be wrong."""
+    for card in cards:
+        utc = to_utc(card, fixture_date)
+        if utc == kickoff_utc:
+            return card
+    return None
+
+
 def main() -> int:
     html = fetch_text(SPIELPLAN_URL)
     fixtures = json.loads(FIXTURES_PATH.read_text(encoding="utf-8"))["fixtures"]
@@ -246,19 +255,17 @@ def main() -> int:
             senders = entry["senders"]
             venue = entry["venue"]
         else:
-            card = cards[match_number - 1]
-            utc = to_utc(card, fixture["date"])
-            senders = parse_senders(card)
-            venue = parse_venue(card)
-            home_de, away_de = parse_knockout_teams(card)
-            if home_de and away_de:
-                teams[key] = team_entry(home_de, away_de)
+            card = find_knockout_card(cards, fixture["kickoffUtc"], fixture["date"])
+            senders = parse_senders(card) if card else []
+            utc = None
+            venue = None
 
         broadcast[key] = senders or ["magenta"]
-        if utc and utc != fixture["kickoffUtc"]:
-            kickoffs[key] = utc
-        if venue:
-            venues[key] = venue
+        if match_number <= 72:
+            if utc and utc != fixture["kickoffUtc"]:
+                kickoffs[key] = utc
+            if venue:
+                venues[key] = venue
 
     payload = {
         "source": SPIELPLAN_URL,

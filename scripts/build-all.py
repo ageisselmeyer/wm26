@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
-"""Run all WM26 data builds for periodic updates during the knockout stage.
+"""Run all WM26 data builds for periodic tournament updates.
 
-1. Fetch anstosszeiten.de → scripts/anstosszeiten.json + anstosszeiten.js
-   (TV, kickoffs, venues, knockout team names when the site has them)
-2. Copy resolved knockout teams into scripts/fixtures.json (for ESPN score matching)
-3. Regenerate fixtures.js
+1. Fetch anstosszeiten.de → TV (KO cards matched by kickoff time from fixtures.json)
+2. Sync knockout pairings from openfootball → fixtures + team overrides
+3. Regenerate fixtures.js and anstosszeiten.js
 4. Bump ?v= cache versions in index.html when output files change
 
-For a cron job during the tournament, this single script is enough:
+For cron during the tournament:
 
     python3 scripts/build-all.py
 
-You only need build-fixtures-js.py alone if you edited fixtures.json by hand.
+Individual scripts (only when needed):
+- build-anstosszeiten-js.py  — TV/times/venues only
+- build-openfootball-teams.py — pairings only
+- build-fixtures-js.py       — after manual fixtures.json edits
 """
 
 from __future__ import annotations
@@ -27,6 +29,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "scripts"
 FIXTURES_JSON = SCRIPTS / "fixtures.json"
 ANSTOSSZEITEN_JSON = SCRIPTS / "anstosszeiten.json"
+ANSTOSSZEITEN_JS = ROOT / "anstosszeiten.js"
 INDEX_HTML = ROOT / "index.html"
 
 
@@ -36,26 +39,6 @@ def file_hash(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def is_placeholder_team(name: str | None) -> bool:
-    if not name:
-        return True
-    value = name.lower()
-    if "/" in name and ("sieger" in value or "verlierer" in value):
-        return True
-    return (
-        "group " in value
-        or value.startswith("winner ")
-        or value.startswith("loser ")
-        or "runners-up" in value
-        or "winners" in value
-        or "third place" in value
-        or value.startswith("sieger")
-        or "sieger " in value
-        or value.startswith("verlierer")
-        or "halbfinale" in value
-    )
-
-
 def run_script(name: str) -> int:
     path = SCRIPTS / name
     print(f"\n==> {name}")
@@ -63,45 +46,12 @@ def run_script(name: str) -> int:
     return result.returncode
 
 
-def sync_fixtures_from_anstosszeiten() -> int:
-    """Apply concrete team overrides from anstosszeiten into fixtures.json."""
-    fixtures_data = json.loads(FIXTURES_JSON.read_text(encoding="utf-8"))
-    anstoss_data = json.loads(ANSTOSSZEITEN_JSON.read_text(encoding="utf-8"))
-    teams = anstoss_data.get("teams", {})
-
-    updated = 0
-    for fixture in fixtures_data["fixtures"]:
-        match_number = fixture["matchNumber"]
-        if match_number < 73:
-            continue
-
-        entry = teams.get(str(match_number))
-        if not entry:
-            continue
-
-        home = entry.get("home")
-        away = entry.get("away")
-        if is_placeholder_team(home) or is_placeholder_team(away):
-            continue
-
-        if fixture["homeTeam"] == home and fixture["awayTeam"] == away:
-            continue
-
-        fixture["homeTeam"] = home
-        fixture["awayTeam"] = away
-        updated += 1
-        print(f"  match {match_number}: {home} vs {away}")
-
-    if updated:
-        FIXTURES_JSON.write_text(
-            json.dumps(fixtures_data, indent=2) + "\n",
-            encoding="utf-8",
-        )
-        print(f"Updated {updated} knockout fixture(s) in {FIXTURES_JSON.name}")
-    else:
-        print("No fixture team updates (anstosszeiten still has placeholders or nothing new)")
-
-    return updated
+def write_anstosszeiten_js() -> None:
+    data = json.loads(ANSTOSSZEITEN_JSON.read_text(encoding="utf-8"))
+    ANSTOSSZEITEN_JS.write_text(
+        "window.ANSTOSSZEITEN_DATA = " + json.dumps(data, separators=(",", ":")) + ";\n",
+        encoding="utf-8",
+    )
 
 
 def bump_cache_versions(before: dict[str, str], after: dict[str, str]) -> None:
@@ -136,8 +86,11 @@ def main() -> int:
     if run_script("build-anstosszeiten-js.py") != 0:
         return 1
 
-    print("\n==> sync fixtures.json from anstosszeiten teams")
-    sync_fixtures_from_anstosszeiten()
+    if run_script("build-openfootball-teams.py") != 0:
+        return 1
+
+    print("\n==> regenerate anstosszeiten.js")
+    write_anstosszeiten_js()
 
     if run_script("build-fixtures-js.py") != 0:
         return 1

@@ -259,16 +259,16 @@
       "zdf"
     ],
     "75": [
-      "zdf"
+      "magenta"
     ],
     "76": [
-      "magenta"
+      "zdf"
     ],
     "77": [
-      "ard"
+      "magenta"
     ],
     "78": [
-      "magenta"
+      "ard"
     ],
     "79": [
       "magenta"
@@ -277,34 +277,34 @@
       "ard"
     ],
     "81": [
-      "ard"
+      "magenta"
     ],
     "82": [
-      "magenta"
-    ],
-    "83": [
       "ard"
     ],
-    "84": [
+    "83": [
       "magenta"
+    ],
+    "84": [
+      "ard"
     ],
     "85": [
       "zdf"
     ],
     "86": [
-      "zdf"
+      "magenta"
     ],
     "87": [
       "magenta"
     ],
     "88": [
-      "magenta"
+      "zdf"
     ],
     "89": [
-      "ard"
+      "magenta"
     ],
     "90": [
-      "magenta"
+      "ard"
     ],
     "91": [
       "zdf"
@@ -350,214 +350,56 @@
     ]
   },
   "kickoffs": {
-    "31": "2026-06-20T04:00:00Z",
-    "74": "2026-06-29T17:00:00Z",
-    "75": "2026-06-29T20:30:00Z",
-    "76": "2026-06-30T01:00:00Z",
-    "77": "2026-06-30T17:00:00Z",
-    "78": "2026-06-30T21:00:00Z",
-    "81": "2026-07-01T20:00:00Z",
-    "82": "2026-07-02T00:00:00Z",
-    "83": "2026-07-02T19:00:00Z",
-    "84": "2026-07-02T23:00:00Z",
-    "86": "2026-07-03T18:00:00Z",
-    "87": "2026-07-03T22:00:00Z",
-    "88": "2026-07-04T01:30:00Z",
-    "89": "2026-07-04T17:00:00Z",
-    "90": "2026-07-04T21:00:00Z"
+    "31": "2026-06-20T04:00:00Z"
   },
   "teams": {
-    "73": {
-      "homeDe": "S\u00fcdafrika",
-      "awayDe": "Kanada",
-      "home": "South Africa",
-      "away": "Canada"
-    },
-    "74": {
-      "homeDe": "Brasilien",
-      "awayDe": "Japan",
-      "home": "Brazil",
-      "away": "Japan"
-    },
-    "75": {
-      "homeDe": "Deutschland",
-      "awayDe": "Paraguay",
-      "home": "Germany",
-      "away": "Paraguay"
-    },
-    "76": {
-      "homeDe": "Niederlande",
-      "awayDe": "Marokko",
-      "home": "Netherlands",
-      "away": "Morocco"
-    },
-    "77": {
-      "homeDe": "Elfenbeink\u00fcste",
-      "awayDe": "Norwegen",
-      "home": "Cote d'Ivoire",
-      "away": "Norway"
-    },
-    "78": {
-      "homeDe": "Frankreich",
-      "awayDe": "Schweden",
-      "home": "France",
-      "away": "Sweden"
-    },
-    "79": {
-      "homeDe": "Mexiko",
-      "awayDe": "Ecuador",
-      "home": "Mexico",
-      "away": "Ecuador"
-    },
-    "80": {
-      "homeDe": "England",
-      "awayDe": "DR Kongo",
-      "home": "England",
-      "away": "Congo DR"
-    },
-    "81": {
-      "homeDe": "Belgien",
-      "awayDe": "Senegal",
-      "home": "Belgium",
-      "away": "Senegal"
-    },
-    "82": {
-      "homeDe": "USA",
-      "awayDe": "Bosnien-Herzegowina",
-      "home": "United States",
-      "away": "Bosnia and Herzegovina"
-    },
-    "83": {
-      "homeDe": "Spanien",
-      "awayDe": "\u00d6sterreich",
-      "home": "Spain",
-      "away": "Austria"
-    },
-    "84": {
-      "homeDe": "Portugal",
-      "awayDe": "Kroatien",
-      "home": "Portugal",
-      "away": "Croatia"
-    },
-    "85": {
-      "homeDe": "Schweiz",
-      "awayDe": "Algerien",
-      "home": "Switzerland",
-      "away": "Algeria"
-    },
     "86": {
-      "homeDe": "Australien",
-      "awayDe": "\u00c4gypten",
-      "home": "Australia",
-      "away": "Egypt"
-    },
-    "87": {
       "homeDe": "Argentinien",
       "awayDe": "Kap Verde",
       "home": "Argentina",
       "away": "Cabo Verde"
     },
-    "88": {
+    "87": {
       "homeDe": "Kolumbien",
       "awayDe": "Ghana",
       "home": "Colombia",
       "away": "Ghana"
     },
+    "88": {
+      "homeDe": "Australien",
+      "awayDe": "\u00c4gypten",
+      "home": "Australia",
+      "away": "Egypt"
+    },
     "89": {
-      "homeDe": "Sieger S\u00fcdafrika/Kanada",
-      "awayDe": "Sieger Niederlande/Marokko",
-      "home": "Sieger S\u00fcdafrika/Kanada",
-      "away": "Sieger Niederlande/Marokko"
+      "homeDe": "Paraguay",
+      "awayDe": "Frankreich",
+      "home": "Paraguay",
+      "away": "France"
     },
     "90": {
-      "homeDe": "Sieger Deutschland/Paraguay",
-      "awayDe": "Sieger Frankreich/Schweden",
-      "home": "Sieger Deutschland/Paraguay",
-      "away": "Sieger Frankreich/Schweden"
+      "homeDe": "Kanada",
+      "awayDe": "Marokko",
+      "home": "Canada",
+      "away": "Morocco"
     },
     "91": {
-      "homeDe": "Sieger Brasilien/Japan",
-      "awayDe": "Sieger Elfenbeink\u00fcste/Norwegen",
-      "home": "Sieger Brasilien/Japan",
-      "away": "Sieger Elfenbeink\u00fcste/Norwegen"
+      "homeDe": "Brasilien",
+      "awayDe": "Norwegen",
+      "home": "Brazil",
+      "away": "Norway"
     },
     "92": {
-      "homeDe": "Sieger Mexiko/Ecuador",
-      "awayDe": "Sieger England/DR Kongo",
-      "home": "Sieger Mexiko/Ecuador",
-      "away": "Sieger England/DR Kongo"
-    },
-    "93": {
-      "homeDe": "Sieger Portugal/Kroatien",
-      "awayDe": "Sieger Spanien/\u00d6sterreich",
-      "home": "Sieger Portugal/Kroatien",
-      "away": "Sieger Spanien/\u00d6sterreich"
+      "homeDe": "Mexiko",
+      "awayDe": "England",
+      "home": "Mexico",
+      "away": "England"
     },
     "94": {
-      "homeDe": "Sieger USA/Bosnien-Herzegowina",
-      "awayDe": "Sieger Belgien/Senegal",
-      "home": "Sieger USA/Bosnien-Herzegowina",
-      "away": "Sieger Belgien/Senegal"
-    },
-    "95": {
-      "homeDe": "Sieger Argentinien/Kap Verde",
-      "awayDe": "Sieger Australien/\u00c4gypten",
-      "home": "Sieger Argentinien/Kap Verde",
-      "away": "Sieger Australien/\u00c4gypten"
-    },
-    "96": {
-      "homeDe": "Sieger Schweiz/Algerien",
-      "awayDe": "Sieger Kolumbien/Ghana",
-      "home": "Sieger Schweiz/Algerien",
-      "away": "Sieger Kolumbien/Ghana"
-    },
-    "97": {
-      "homeDe": "Sieger Achtelfinale 1",
-      "awayDe": "Sieger Achtelfinale 2",
-      "home": "Sieger Achtelfinale 1",
-      "away": "Sieger Achtelfinale 2"
-    },
-    "98": {
-      "homeDe": "Sieger Achtelfinale 5",
-      "awayDe": "Sieger Achtelfinale 6",
-      "home": "Sieger Achtelfinale 5",
-      "away": "Sieger Achtelfinale 6"
-    },
-    "99": {
-      "homeDe": "Sieger Achtelfinale 3",
-      "awayDe": "Sieger Achtelfinale 4",
-      "home": "Sieger Achtelfinale 3",
-      "away": "Sieger Achtelfinale 4"
-    },
-    "100": {
-      "homeDe": "Sieger Achtelfinale 7",
-      "awayDe": "Sieger Achtelfinale 8",
-      "home": "Sieger Achtelfinale 7",
-      "away": "Sieger Achtelfinale 8"
-    },
-    "101": {
-      "homeDe": "Sieger Viertelfinale 1",
-      "awayDe": "Sieger Viertelfinale 2",
-      "home": "Sieger Viertelfinale 1",
-      "away": "Sieger Viertelfinale 2"
-    },
-    "102": {
-      "homeDe": "Sieger Viertelfinale 3",
-      "awayDe": "Sieger Viertelfinale 4",
-      "home": "Sieger Viertelfinale 3",
-      "away": "Sieger Viertelfinale 4"
-    },
-    "103": {
-      "homeDe": "Verlierer Halbfinale 1",
-      "awayDe": "Verlierer Halbfinale 2",
-      "home": "Verlierer Halbfinale 1",
-      "away": "Verlierer Halbfinale 2"
-    },
-    "104": {
-      "homeDe": "Sieger Halbfinale 1",
-      "awayDe": "Sieger Halbfinale 2",
-      "home": "Sieger Halbfinale 1",
-      "away": "Sieger Halbfinale 2"
+      "homeDe": "USA",
+      "awayDe": "Belgien",
+      "home": "United States",
+      "away": "Belgium"
     }
   },
   "venues": {
@@ -632,38 +474,6 @@
     "69": "kansas-city",
     "70": "dallas",
     "71": "miami",
-    "72": "atlanta",
-    "73": "los-angeles",
-    "74": "houston",
-    "75": "boston",
-    "76": "monterrey",
-    "77": "dallas",
-    "78": "new-york",
-    "79": "mexico-city",
-    "80": "atlanta",
-    "81": "seattle",
-    "82": "san-francisco",
-    "83": "los-angeles",
-    "84": "toronto",
-    "85": "vancouver",
-    "86": "dallas",
-    "87": "miami",
-    "88": "kansas-city",
-    "89": "houston",
-    "90": "philadelphia",
-    "91": "new-york",
-    "92": "mexico-city",
-    "93": "dallas",
-    "94": "seattle",
-    "95": "atlanta",
-    "96": "vancouver",
-    "97": "boston",
-    "98": "los-angeles",
-    "99": "miami",
-    "100": "kansas-city",
-    "101": "dallas",
-    "102": "atlanta",
-    "103": "miami",
-    "104": "new-york"
+    "72": "atlanta"
   }
 }
