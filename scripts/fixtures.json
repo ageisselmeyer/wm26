@@ -726,8 +726,8 @@
       "kickoffUtc": "2026-06-28T19:00:00Z",
       "stage": "round-of-32",
       "group": null,
-      "homeTeam": "Group A runners-up",
-      "awayTeam": "Group B runners-up",
+      "homeTeam": "South Africa",
+      "awayTeam": "Canada",
       "hostCity": "los-angeles"
     },
     {
@@ -736,8 +736,8 @@
       "kickoffUtc": "2026-06-29T20:30:00Z",
       "stage": "round-of-32",
       "group": null,
-      "homeTeam": "Group E winners",
-      "awayTeam": "Group A/B/C/D/F third place",
+      "homeTeam": "Brazil",
+      "awayTeam": "Japan",
       "hostCity": "boston"
     },
     {
@@ -746,8 +746,8 @@
       "kickoffUtc": "2026-06-30T01:00:00Z",
       "stage": "round-of-32",
       "group": null,
-      "homeTeam": "Group F winners",
-      "awayTeam": "Group C runners-up",
+      "homeTeam": "Germany",
+      "awayTeam": "Paraguay",
       "hostCity": "monterrey"
     },
     {
@@ -756,8 +756,8 @@
       "kickoffUtc": "2026-06-29T17:00:00Z",
       "stage": "round-of-32",
       "group": null,
-      "homeTeam": "Group C winners",
-      "awayTeam": "Group F runners-up",
+      "homeTeam": "Netherlands",
+      "awayTeam": "Morocco",
       "hostCity": "houston"
     },
     {
@@ -766,8 +766,8 @@
       "kickoffUtc": "2026-06-30T21:00:00Z",
       "stage": "round-of-32",
       "group": null,
-      "homeTeam": "Group I winners",
-      "awayTeam": "Group C/D/F/G/H third place",
+      "homeTeam": "Cote d'Ivoire",
+      "awayTeam": "Norway",
       "hostCity": "new-york"
     },
     {
@@ -776,8 +776,8 @@
       "kickoffUtc": "2026-06-30T17:00:00Z",
       "stage": "round-of-32",
       "group": null,
-      "homeTeam": "Group E runners-up",
-      "awayTeam": "Group I runners-up",
+      "homeTeam": "France",
+      "awayTeam": "Sweden",
       "hostCity": "dallas"
     },
     {
@@ -786,8 +786,8 @@
       "kickoffUtc": "2026-07-01T01:00:00Z",
       "stage": "round-of-32",
       "group": null,
-      "homeTeam": "Group A winners",
-      "awayTeam": "Group C/E/F/H/I third place",
+      "homeTeam": "Mexico",
+      "awayTeam": "Ecuador",
       "hostCity": "mexico-city"
     },
     {
@@ -796,8 +796,8 @@
       "kickoffUtc": "2026-07-01T16:00:00Z",
       "stage": "round-of-32",
       "group": null,
-      "homeTeam": "Group L winners",
-      "awayTeam": "Group E/H/I/J/K third place",
+      "homeTeam": "England",
+      "awayTeam": "Congo DR",
       "hostCity": "atlanta"
     },
     {
@@ -806,8 +806,8 @@
       "kickoffUtc": "2026-07-02T00:00:00Z",
       "stage": "round-of-32",
       "group": null,
-      "homeTeam": "Group D winners",
-      "awayTeam": "Group B/E/F/I/J third place",
+      "homeTeam": "Belgium",
+      "awayTeam": "Senegal",
       "hostCity": "san-francisco"
     },
     {
@@ -816,8 +816,8 @@
       "kickoffUtc": "2026-07-01T20:00:00Z",
       "stage": "round-of-32",
       "group": null,
-      "homeTeam": "Group G winners",
-      "awayTeam": "Group A/E/H/I/J third place",
+      "homeTeam": "United States",
+      "awayTeam": "Bosnia and Herzegovina",
       "hostCity": "seattle"
     },
     {
@@ -826,8 +826,8 @@
       "kickoffUtc": "2026-07-02T23:00:00Z",
       "stage": "round-of-32",
       "group": null,
-      "homeTeam": "Group K runners-up",
-      "awayTeam": "Group L runners-up",
+      "homeTeam": "Spain",
+      "awayTeam": "Austria",
       "hostCity": "toronto"
     },
     {
@@ -836,8 +836,8 @@
       "kickoffUtc": "2026-07-02T19:00:00Z",
       "stage": "round-of-32",
       "group": null,
-      "homeTeam": "Group H winners",
-      "awayTeam": "Group J runners-up",
+      "homeTeam": "Portugal",
+      "awayTeam": "Croatia",
       "hostCity": "los-angeles"
     },
     {
@@ -846,8 +846,8 @@
       "kickoffUtc": "2026-07-03T03:00:00Z",
       "stage": "round-of-32",
       "group": null,
-      "homeTeam": "Group B winners",
-      "awayTeam": "Group E/F/G/I/J third place",
+      "homeTeam": "Switzerland",
+      "awayTeam": "Algeria",
       "hostCity": "vancouver"
     },
     {
@@ -856,8 +856,8 @@
       "kickoffUtc": "2026-07-03T22:00:00Z",
       "stage": "round-of-32",
       "group": null,
-      "homeTeam": "Group J winners",
-      "awayTeam": "Group H runners-up",
+      "homeTeam": "Australia",
+      "awayTeam": "Egypt",
       "hostCity": "miami"
     },
     {
@@ -866,8 +866,8 @@
       "kickoffUtc": "2026-07-04T01:30:00Z",
       "stage": "round-of-32",
       "group": null,
-      "homeTeam": "Group K winners",
-      "awayTeam": "Group D/E/I/J/L third place",
+      "homeTeam": "Argentina",
+      "awayTeam": "Cabo Verde",
       "hostCity": "kansas-city"
     },
     {
@@ -876,8 +876,8 @@
       "kickoffUtc": "2026-07-03T18:00:00Z",
       "stage": "round-of-32",
       "group": null,
-      "homeTeam": "Group D runners-up",
-      "awayTeam": "Group G runners-up",
+      "homeTeam": "Colombia",
+      "awayTeam": "Ghana",
       "hostCity": "dallas"
     },
     {
