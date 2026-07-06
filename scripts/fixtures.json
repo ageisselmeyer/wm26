@@ -926,8 +926,8 @@
       "kickoffUtc": "2026-07-06T19:00:00Z",
       "stage": "round-of-16",
       "group": null,
-      "homeTeam": "Winner Match 83",
-      "awayTeam": "Winner Match 84",
+      "homeTeam": "Portugal",
+      "awayTeam": "Spain",
       "hostCity": "dallas"
     },
     {
@@ -946,8 +946,8 @@
       "kickoffUtc": "2026-07-07T16:00:00Z",
       "stage": "round-of-16",
       "group": null,
-      "homeTeam": "Winner Match 86",
-      "awayTeam": "Winner Match 88",
+      "homeTeam": "Argentina",
+      "awayTeam": "Egypt",
       "hostCity": "atlanta"
     },
     {
@@ -956,8 +956,8 @@
       "kickoffUtc": "2026-07-07T20:00:00Z",
       "stage": "round-of-16",
       "group": null,
-      "homeTeam": "Winner Match 85",
-      "awayTeam": "Winner Match 87",
+      "homeTeam": "Switzerland",
+      "awayTeam": "Colombia",
       "hostCity": "vancouver"
     },
     {
@@ -966,8 +966,8 @@
       "kickoffUtc": "2026-07-09T20:00:00Z",
       "stage": "quarter-finals",
       "group": null,
-      "homeTeam": "Winner Match 89",
-      "awayTeam": "Winner Match 90",
+      "homeTeam": "France",
+      "awayTeam": "Morocco",
       "hostCity": "boston"
     },
     {

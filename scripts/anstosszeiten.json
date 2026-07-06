@@ -1,6 +1,6 @@
 {
   "source": "https://anstosszeiten.de/spielplan/",
-  "syncedAt": "2026-07-03",
+  "syncedAt": "2026-07-06",
   "broadcast": {
     "1": [
       "zdf",
@@ -353,53 +353,35 @@
     "31": "2026-06-20T04:00:00Z"
   },
   "teams": {
-    "86": {
-      "homeDe": "Argentinien",
-      "awayDe": "Kap Verde",
-      "home": "Argentina",
-      "away": "Cabo Verde"
-    },
-    "87": {
-      "homeDe": "Kolumbien",
-      "awayDe": "Ghana",
-      "home": "Colombia",
-      "away": "Ghana"
-    },
-    "88": {
-      "homeDe": "Australien",
-      "awayDe": "\u00c4gypten",
-      "home": "Australia",
-      "away": "Egypt"
-    },
-    "89": {
-      "homeDe": "Paraguay",
-      "awayDe": "Frankreich",
-      "home": "Paraguay",
-      "away": "France"
-    },
-    "90": {
-      "homeDe": "Kanada",
-      "awayDe": "Marokko",
-      "home": "Canada",
-      "away": "Morocco"
-    },
-    "91": {
-      "homeDe": "Brasilien",
-      "awayDe": "Norwegen",
-      "home": "Brazil",
-      "away": "Norway"
-    },
-    "92": {
-      "homeDe": "Mexiko",
-      "awayDe": "England",
-      "home": "Mexico",
-      "away": "England"
+    "93": {
+      "homeDe": "Portugal",
+      "awayDe": "Spanien",
+      "home": "Portugal",
+      "away": "Spain"
     },
     "94": {
       "homeDe": "USA",
       "awayDe": "Belgien",
       "home": "United States",
       "away": "Belgium"
+    },
+    "95": {
+      "homeDe": "Argentinien",
+      "awayDe": "\u00c4gypten",
+      "home": "Argentina",
+      "away": "Egypt"
+    },
+    "96": {
+      "homeDe": "Schweiz",
+      "awayDe": "Kolumbien",
+      "home": "Switzerland",
+      "away": "Colombia"
+    },
+    "97": {
+      "homeDe": "Frankreich",
+      "awayDe": "Marokko",
+      "home": "France",
+      "away": "Morocco"
     }
   },
   "venues": {
