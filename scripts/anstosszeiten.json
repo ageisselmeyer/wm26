@@ -1,6 +1,6 @@
 {
   "source": "https://anstosszeiten.de/spielplan/",
-  "syncedAt": "2026-07-08",
+  "syncedAt": "2026-07-09",
   "broadcast": {
     "1": [
       "zdf",
@@ -370,6 +370,12 @@
       "awayDe": "England",
       "home": "Norway",
       "away": "England"
+    },
+    "100": {
+      "homeDe": "Argentinien",
+      "awayDe": "Schweiz",
+      "home": "Argentina",
+      "away": "Switzerland"
     }
   },
   "venues": {
