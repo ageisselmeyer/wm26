@@ -123,8 +123,10 @@ def team_entry(home: str, away: str) -> dict[str, str]:
 
 
 def parse_cup_finals_teams(text: str) -> dict[int, tuple[str, str]]:
-    """Parse knockout pairings from cup_finals.txt (only explicit 'Team v Team' lines)."""
+    """Parse knockout pairings from cup_finals.txt."""
     teams: dict[int, tuple[str, str]] = {}
+    winners: dict[int, str] = {}
+    losers: dict[int, str] = {}
 
     for line in text.splitlines():
         match = re.match(r"\s*\((\d+)\)\s+", line)
@@ -139,21 +141,91 @@ def parse_cup_finals_teams(text: str) -> dict[int, tuple[str, str]]:
         rest = re.sub(r"^\d{1,2}:\d{2}\s+UTC[^\s]+\s+", "", rest)
         rest = rest.split("@", 1)[0].strip()
         rest = rest.split("##", 1)[0].strip()
-        if not rest or " v " not in rest.lower():
+        if not rest:
+            continue
+
+        result = parse_scored_match(rest)
+        if result:
+            home, away, winner = result
+            winners[match_number] = winner
+            losers[match_number] = away if winner == home else home
+            teams[match_number] = (home, away)
+            continue
+
+        if " v " not in rest.lower():
             continue
 
         versus = re.match(r"^(.+?)\s+v\s+(.+)$", rest, re.IGNORECASE)
         if not versus:
             continue
 
-        home = to_app_team(versus.group(1).strip())
-        away = to_app_team(versus.group(2).strip())
+        home_raw = versus.group(1).strip()
+        away_raw = versus.group(2).strip()
+        home = resolve_bracket_slot(home_raw, winners, losers) or to_app_team(home_raw)
+        away = resolve_bracket_slot(away_raw, winners, losers) or to_app_team(away_raw)
         if is_placeholder_team(home) or is_placeholder_team(away):
             continue
 
         teams[match_number] = (home, away)
 
     return teams
+
+
+def resolve_bracket_slot(
+    name: str, winners: dict[int, str], losers: dict[int, str]
+) -> str | None:
+    ref = parse_bracket_reference(name)
+    if not ref:
+        return None
+    kind, match_number = ref
+    if kind == "winner":
+        return winners.get(match_number)
+    return losers.get(match_number)
+
+
+def parse_bracket_reference(name: str) -> tuple[str, int] | None:
+    value = name.strip()
+    if match := re.fullmatch(r"W(\d+)", value, re.IGNORECASE):
+        return "winner", int(match.group(1))
+    if match := re.fullmatch(r"L(\d+)", value, re.IGNORECASE):
+        return "loser", int(match.group(1))
+    if match := re.fullmatch(r"Winner Match (\d+)", value, re.IGNORECASE):
+        return "winner", int(match.group(1))
+    if match := re.fullmatch(r"Loser Match (\d+)", value, re.IGNORECASE):
+        return "loser", int(match.group(1))
+    return None
+
+
+def parse_scored_match(rest: str) -> tuple[str, str, str] | None:
+    pen = re.search(r",\s*(\d+-\d+)\s+pen\.\s+(.+)$", rest, re.IGNORECASE)
+    if pen:
+        away = to_app_team(pen.group(2).strip())
+        head = rest[: pen.start()].strip()
+        home_match = re.match(r"^(.+?)\s+\d+-\d+", head)
+        if not home_match:
+            return None
+        home = to_app_team(home_match.group(1).strip())
+        pen_home, pen_away = map(int, pen.group(1).split("-"))
+        winner = away if pen_away > pen_home else home
+        return home, away, winner
+
+    score = re.search(r"(\d+)-(\d+)", rest)
+    if not score:
+        return None
+
+    home = to_app_team(rest[: score.start()].strip())
+    home_score, away_score = int(score.group(1)), int(score.group(2))
+    tail = rest[score.end() :].strip()
+    away_match = re.search(r"\)\s*(.+)$", tail)
+    if away_match:
+        away = to_app_team(away_match.group(1).strip())
+    else:
+        away = to_app_team(re.sub(r"^a\.e\.t\.\s*", "", tail, flags=re.IGNORECASE).strip())
+
+    if home_score == away_score:
+        return None
+    winner = home if home_score > away_score else away
+    return home, away, winner
 
 
 def write_anstosszeiten_js(data: dict) -> None:

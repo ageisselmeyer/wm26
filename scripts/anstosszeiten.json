@@ -353,11 +353,185 @@
     "31": "2026-06-20T04:00:00Z"
   },
   "teams": {
+    "73": {
+      "homeDe": "S\u00fcdafrika",
+      "awayDe": "Kanada",
+      "home": "South Africa",
+      "away": "Canada"
+    },
+    "74": {
+      "homeDe": "Deutschland",
+      "awayDe": "Paraguay",
+      "home": "Germany",
+      "away": "Paraguay"
+    },
+    "75": {
+      "homeDe": "Niederlande",
+      "awayDe": "Marokko",
+      "home": "Netherlands",
+      "away": "Morocco"
+    },
+    "76": {
+      "homeDe": "Brasilien",
+      "awayDe": "Japan",
+      "home": "Brazil",
+      "away": "Japan"
+    },
+    "77": {
+      "homeDe": "Frankreich",
+      "awayDe": "Schweden",
+      "home": "France",
+      "away": "Sweden"
+    },
+    "78": {
+      "homeDe": "Elfenbeink\u00fcste",
+      "awayDe": "Norwegen",
+      "home": "Cote d'Ivoire",
+      "away": "Norway"
+    },
+    "79": {
+      "homeDe": "Mexiko",
+      "awayDe": "Ecuador",
+      "home": "Mexico",
+      "away": "Ecuador"
+    },
+    "80": {
+      "homeDe": "England",
+      "awayDe": "DR Kongo",
+      "home": "England",
+      "away": "Congo DR"
+    },
+    "81": {
+      "homeDe": "USA",
+      "awayDe": "Bosnien-Herzegowina",
+      "home": "United States",
+      "away": "Bosnia and Herzegovina"
+    },
+    "82": {
+      "homeDe": "Belgien",
+      "awayDe": "Senegal",
+      "home": "Belgium",
+      "away": "Senegal"
+    },
+    "83": {
+      "homeDe": "Portugal",
+      "awayDe": "Kroatien",
+      "home": "Portugal",
+      "away": "Croatia"
+    },
+    "84": {
+      "homeDe": "Spanien",
+      "awayDe": "\u00d6sterreich",
+      "home": "Spain",
+      "away": "Austria"
+    },
+    "85": {
+      "homeDe": "Schweiz",
+      "awayDe": "Algerien",
+      "home": "Switzerland",
+      "away": "Algeria"
+    },
+    "86": {
+      "homeDe": "Argentinien",
+      "awayDe": "Kap Verde",
+      "home": "Argentina",
+      "away": "Cabo Verde"
+    },
+    "87": {
+      "homeDe": "Kolumbien",
+      "awayDe": "Ghana",
+      "home": "Colombia",
+      "away": "Ghana"
+    },
+    "88": {
+      "homeDe": "Australien",
+      "awayDe": "\u00c4gypten",
+      "home": "Australia",
+      "away": "Egypt"
+    },
+    "89": {
+      "homeDe": "Paraguay",
+      "awayDe": "Frankreich",
+      "home": "Paraguay",
+      "away": "France"
+    },
+    "90": {
+      "homeDe": "Kanada",
+      "awayDe": "Marokko",
+      "home": "Canada",
+      "away": "Morocco"
+    },
+    "91": {
+      "homeDe": "Brasilien",
+      "awayDe": "Norwegen",
+      "home": "Brazil",
+      "away": "Norway"
+    },
+    "92": {
+      "homeDe": "Mexiko",
+      "awayDe": "England",
+      "home": "Mexico",
+      "away": "England"
+    },
+    "93": {
+      "homeDe": "Portugal",
+      "awayDe": "Spanien",
+      "home": "Portugal",
+      "away": "Spain"
+    },
+    "94": {
+      "homeDe": "USA",
+      "awayDe": "Belgien",
+      "home": "United States",
+      "away": "Belgium"
+    },
+    "95": {
+      "homeDe": "Argentinien",
+      "awayDe": "\u00c4gypten",
+      "home": "Argentina",
+      "away": "Egypt"
+    },
+    "96": {
+      "homeDe": "Schweiz",
+      "awayDe": "Kolumbien",
+      "home": "Switzerland",
+      "away": "Colombia"
+    },
+    "97": {
+      "homeDe": "Frankreich",
+      "awayDe": "Marokko",
+      "home": "France",
+      "away": "Morocco"
+    },
+    "98": {
+      "homeDe": "Spanien",
+      "awayDe": "Belgien",
+      "home": "Spain",
+      "away": "Belgium"
+    },
+    "99": {
+      "homeDe": "Norwegen",
+      "awayDe": "England",
+      "home": "Norway",
+      "away": "England"
+    },
+    "100": {
+      "homeDe": "Argentinien",
+      "awayDe": "Schweiz",
+      "home": "Argentina",
+      "away": "Switzerland"
+    },
     "101": {
       "homeDe": "Frankreich",
       "awayDe": "Spanien",
       "home": "France",
       "away": "Spain"
+    },
+    "102": {
+      "homeDe": "England",
+      "awayDe": "Argentinien",
+      "home": "England",
+      "away": "Argentina"
     }
   },
   "venues": {
