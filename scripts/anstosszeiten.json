@@ -1,6 +1,6 @@
 {
   "source": "https://anstosszeiten.de/spielplan/",
-  "syncedAt": "2026-07-09",
+  "syncedAt": "2026-07-12",
   "broadcast": {
     "1": [
       "zdf",
@@ -353,29 +353,11 @@
     "31": "2026-06-20T04:00:00Z"
   },
   "teams": {
-    "97": {
+    "101": {
       "homeDe": "Frankreich",
-      "awayDe": "Marokko",
+      "awayDe": "Spanien",
       "home": "France",
-      "away": "Morocco"
-    },
-    "98": {
-      "homeDe": "Spanien",
-      "awayDe": "Belgien",
-      "home": "Spain",
-      "away": "Belgium"
-    },
-    "99": {
-      "homeDe": "Norwegen",
-      "awayDe": "England",
-      "home": "Norway",
-      "away": "England"
-    },
-    "100": {
-      "homeDe": "Argentinien",
-      "awayDe": "Schweiz",
-      "home": "Argentina",
-      "away": "Switzerland"
+      "away": "Spain"
     }
   },
   "venues": {
