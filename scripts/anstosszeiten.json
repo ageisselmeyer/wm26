@@ -1,6 +1,6 @@
 {
   "source": "https://anstosszeiten.de/spielplan/",
-  "syncedAt": "2026-07-12",
+  "syncedAt": "2026-07-17",
   "broadcast": {
     "1": [
       "zdf",
@@ -531,6 +531,18 @@
       "homeDe": "England",
       "awayDe": "Argentinien",
       "home": "England",
+      "away": "Argentina"
+    },
+    "103": {
+      "homeDe": "Frankreich",
+      "awayDe": "England",
+      "home": "France",
+      "away": "England"
+    },
+    "104": {
+      "homeDe": "Spanien",
+      "awayDe": "Argentinien",
+      "home": "Spain",
       "away": "Argentina"
     }
   },

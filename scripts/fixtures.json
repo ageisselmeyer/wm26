@@ -1026,8 +1026,8 @@
       "kickoffUtc": "2026-07-18T21:00:00Z",
       "stage": "third-place",
       "group": null,
-      "homeTeam": "Loser Match 101",
-      "awayTeam": "Loser Match 102",
+      "homeTeam": "France",
+      "awayTeam": "England",
       "hostCity": "miami"
     },
     {
@@ -1036,8 +1036,8 @@
       "kickoffUtc": "2026-07-19T19:00:00Z",
       "stage": "final",
       "group": null,
-      "homeTeam": "Winner Match 101",
-      "awayTeam": "Winner Match 102",
+      "homeTeam": "Spain",
+      "awayTeam": "Argentina",
       "hostCity": "new-york"
     }
   ]
