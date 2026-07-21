@@ -293,8 +293,14 @@ function formatMeszWeekday(date) {
   }).format(date);
 }
 
+function clampTournamentDate(isoDate) {
+  if (isoDate < TOURNAMENT_START) return TOURNAMENT_START;
+  if (isoDate > TOURNAMENT_END) return TOURNAMENT_END;
+  return isoDate;
+}
+
 function getMeszToday(now = new Date()) {
-  return formatDateInTz(now, MESZ_TZ);
+  return clampTournamentDate(formatDateInTz(now, MESZ_TZ));
 }
 
 function getSelectedMeszDate(now = new Date()) {
@@ -317,7 +323,7 @@ function formatMeszWeekdayForIso(isoDate) {
 }
 
 function formatDayHeading(offset, now) {
-  const meszToday = formatDateInTz(now, MESZ_TZ);
+  const meszToday = getMeszToday(now);
   const meszSelected = shiftIsoDate(meszToday, offset);
   const dateLabel = formatMeszHeadingForIso(meszSelected);
   if (offset === 0) return `📅 Heute, ${dateLabel}`;
@@ -330,7 +336,7 @@ function emptyDayMessage(offset, now) {
   if (offset === 0) return "Heute keine Spiele.";
   if (offset === -1) return "Gestern keine Spiele.";
   if (offset === 1) return "Morgen keine Spiele.";
-  return `Keine Spiele am ${formatMeszHeadingForIso(shiftIsoDate(formatDateInTz(now, MESZ_TZ), offset))}.`;
+  return `Keine Spiele am ${formatMeszHeadingForIso(shiftIsoDate(getMeszToday(now), offset))}.`;
 }
 
 function parseOpenFootballKickoff(date, timeStr) {
